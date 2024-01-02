@@ -15,10 +15,10 @@ val modId: String = "blazemap"
 val modVersion : String = "0.5.1-alpha"
 
 // Dependency versions
-val rubidiumVersion: String = "0.5.3a"
+val rubidiumVersion: String = "0.5.6"
 
 // Dev playtest dependency versions
-val tfcVersion: String = "Forge-${minecraftVersion}-2.1.11-beta"
+val tfcVersion: String = "Forge-${minecraftVersion}-2.2.32"
 val patchouliVersion: String = "${minecraftVersion}-71.1"
 val cartographyVersion: String = "${minecraftVersion}-0.4.0-alpha3"
 
@@ -61,19 +61,20 @@ dependencies {
     // runtimeOnly(fg.deobf("_:rubidium:${rubidiumVersion}"))
 
 
-
     // ======== DEV PLAYTEST ==================================================
-    // TFC
-    compileOnly(fg.deobf("_:TerraFirmaCraft:${tfcVersion}"))
-    runtimeOnly(fg.deobf("_:TerraFirmaCraft:${tfcVersion}"))
+    // == !IMPORTANT: Must comment out block before pushing ===================
 
-    // Patchouli
-    compileOnly(fg.deobf("_:Patchouli:$patchouliVersion"))
-    runtimeOnly(fg.deobf("_:Patchouli:$patchouliVersion"))
+    // // TFC
+    // compileOnly(fg.deobf("_:TerraFirmaCraft:${tfcVersion}"))
+    // runtimeOnly(fg.deobf("_:TerraFirmaCraft:${tfcVersion}"))
 
-    // Cartography
-    compileOnly(fg.deobf("_:Cartography:${cartographyVersion}"))
-    runtimeOnly(fg.deobf("_:Cartography:${cartographyVersion}"))
+    // // Patchouli
+    // compileOnly(fg.deobf("_:Patchouli:$patchouliVersion"))
+    // runtimeOnly(fg.deobf("_:Patchouli:$patchouliVersion"))
+
+    // // Cartography
+    // compileOnly(fg.deobf("_:Cartography:${cartographyVersion}"))
+    // runtimeOnly(fg.deobf("_:Cartography:${cartographyVersion}"))
     // ========================================================================
 
 
