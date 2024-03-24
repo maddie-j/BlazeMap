@@ -17,6 +17,7 @@ import com.eerussianguy.blazemap.feature.BlazeMapFeaturesCommon;
 import com.eerussianguy.blazemap.network.BlazeNetwork;
 import com.mojang.logging.LogUtils;
 import org.slf4j.Logger;
+import org.slf4j.event.Level;
 
 import static com.eerussianguy.blazemap.BlazeMap.MOD_ID;
 
@@ -28,6 +29,8 @@ public class BlazeMap {
     public static final String MOD_NAME = "Blaze Map";
 
     public BlazeMap() {
+        // LogUtils.configureRootLoggingLevel(Level.DEBUG);
+
         ModLoadingContext.get().registerExtensionPoint(IExtensionPoint.DisplayTest.class, () -> new IExtensionPoint.DisplayTest(() -> "Nothing", (remote, isServer) -> true));
         final IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();
         bus.addListener(this::setup);
@@ -35,6 +38,7 @@ public class BlazeMap {
         if(FMLEnvironment.dist == Dist.CLIENT) {
             FMLEventHandler.init();
             BlazeMapConfig.init();
+            DebuggingEventHandler.init();
         }
         else {
             // These are forbidden in the dedicated server.
