@@ -99,10 +99,10 @@ mixin {
     debug.export.decompile.async = true
     debug.export = true
     debug.countInjections = true
-    debug.strict.targets = true
+    // debug.strict.targets = true
 
     // env.remapRefMap = true
-    // env.refMapRemappingFile = "${buildDir}\\createSrgToMcp\\output.srg"
+    // env.refMapRemappingFile = "${buildDir}/createSrgToMcp/output.srg"
 
 }
 
