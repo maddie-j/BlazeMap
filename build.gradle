@@ -34,10 +34,6 @@ minecraft {
         client {
             workingDirectory project.file('run')
 
-            // args "-mixin.config=blazemap.mixins.json"
-            // property 'mixin.env.remapRefMap', 'true'
-            // property 'mixin.env.refMapRemappingFile', "${buildDir}/createSrgToMcp/output.srg"
-
             property 'forge.logging.markers', 'REGISTRIES'
             property 'forge.logging.console.level', 'debug'
             mods {
@@ -49,10 +45,6 @@ minecraft {
 
         server {
             workingDirectory project.file('run')
-
-            // args "-mixin.config=blazemap.mixins.json"
-            // property 'mixin.env.remapRefMap', 'true'
-            // property 'mixin.env.refMapRemappingFile', "${buildDir}/createSrgToMcp/output.srg"
 
             property 'forge.logging.markers', 'REGISTRIES'
             property 'forge.logging.console.level', 'debug'
@@ -93,17 +85,11 @@ mixin {
     add sourceSets.main, 'blazemap.refmap.json'
     config 'blazemap.mixins.json'
 
-    dumpTargetOnFailure = true
-
-    debug.verbose = true
-    debug.export.decompile.async = true
-    debug.export = true
-    debug.countInjections = true
-    // debug.strict.targets = true
-
-    // env.remapRefMap = true
-    // env.refMapRemappingFile = "${buildDir}/createSrgToMcp/output.srg"
-
+    // Mixin Debugging Settings
+    // debug.verbose = true
+    // debug.export = true
+    // dumpTargetOnFailure = true
+    // debug.countInjections = true
 }
 
 // Example for how to get properties into the manifest for reading by the runtime..

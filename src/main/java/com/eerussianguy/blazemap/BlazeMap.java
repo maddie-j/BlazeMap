@@ -38,7 +38,6 @@ public class BlazeMap {
         if(FMLEnvironment.dist == Dist.CLIENT) {
             FMLEventHandler.init();
             BlazeMapConfig.init();
-            DebuggingEventHandler.init();
         }
         else {
             // These are forbidden in the dedicated server.

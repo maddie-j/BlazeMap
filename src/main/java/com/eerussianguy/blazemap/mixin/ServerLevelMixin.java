@@ -1,6 +1,7 @@
 package com.eerussianguy.blazemap.mixin;
 
 import java.util.List;
+import java.util.concurrent.Executor;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
@@ -17,10 +18,7 @@ import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.storage.LevelStorageSource;
 import net.minecraft.world.level.storage.ServerLevelData;
 
-import com.eerussianguy.blazemap.BlazeMap;
 import com.eerussianguy.blazemap.engine.server.BlazeMapServerEngine;
-
-import java.util.concurrent.Executor;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -41,13 +39,6 @@ public abstract class ServerLevelMixin extends Level {
 
     @Inject(method = "onBlockStateChange", at = @At("HEAD"), expect = 1)
     public void onOnBlockStateChange(BlockPos block, BlockState s1, BlockState s2, CallbackInfo ci) {
-        BlazeMap.LOGGER.warn("555 onBlockStateChange: {} {} {}", block, s1, s2);
-
-        // If it's stupid but it works, it's not stupid.
-        // @Shadow fucks with the project because it doesn't reobf properly.
-        // No one knows why, no one can / wants to help, and so no one can point fingers at us either.
-        // ServerLevel level = (ServerLevel) (Object) this;
-
         BlazeMapServerEngine.onChunkChanged(super.dimension(), new ChunkPos(block));
     }
 }
