@@ -4,6 +4,7 @@ import net.minecraft.tags.BlockTags;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraftforge.common.Tags.Blocks;
 
 import com.eerussianguy.blazemap.api.BlazeMapReferences;
 import com.eerussianguy.blazemap.api.builtin.TerrainHeightMD;
@@ -25,16 +26,10 @@ public class TerrainHeightCollector extends Collector<TerrainHeightMD> {
 
         for(int x = 0; x < 16; x++) {
             for(int z = 0; z < 16; z++) {
-                int height = level.getHeight(Heightmap.Types.MOTION_BLOCKING, minX + x, minZ + z);
-                boolean foundLeaves = false;
-                while(isLeavesOrReplaceable(level, minX + x, height - 1, minZ + z)) {
+                int height = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, minX + x, minZ + z);
+
+                while(!isGround(level, minX + x, height, minZ + z) && height > level.getMinBuildHeight()) {
                     height--;
-                    if(height <= level.getMinBuildHeight()) break;
-                    foundLeaves = true;
-                }
-                while(foundLeaves && isSkippableAfterLeaves(level, minX + x, height - 1, minZ + z)) {
-                    height--;
-                    if(height <= level.getMinBuildHeight()) break;
                 }
                 heightmap[x][z] = height;
             }
@@ -43,8 +38,8 @@ public class TerrainHeightCollector extends Collector<TerrainHeightMD> {
         return new TerrainHeightMD(BlazeMapReferences.MasterData.TERRAIN_HEIGHT, level.getMinBuildHeight(), level.getMaxBuildHeight(), level.getHeight(), level.getSeaLevel(), heightmap);
     }
 
-    protected static boolean isSkippableAfterLeaves(Level level, int x, int y, int z) {
+    protected static boolean isGround(Level level, int x, int y, int z) {
         BlockState state = level.getBlockState(POS.set(x, y, z));
-        return state.is(BlockTags.LEAVES) || state.isAir() || state.is(BlockTags.LOGS) || state.canBeReplaced();
+        return !state.canBeReplaced() && (state.is(BlockTags.OVERWORLD_CARVER_REPLACEABLES) || state.is(Blocks.ORES));
     }
 }

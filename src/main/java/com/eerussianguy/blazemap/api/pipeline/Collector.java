@@ -4,6 +4,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 
 import com.eerussianguy.blazemap.api.BlazeRegistry.Key;
@@ -40,7 +41,7 @@ public abstract class Collector<T extends MasterDatum> implements RegistryEntry,
 
     protected static boolean isWater(Level level, int x, int y, int z) {
         BlockState state = level.getBlockState(POS.set(x, y, z));
-        return state.getFluidState().is(FluidTags.WATER);
+        return state.getFluidState().is(FluidTags.WATER) || state.is(Blocks.ICE);
     }
 
     protected static boolean isLeavesOrReplaceable(Level level, int x, int y, int z) {
