@@ -4,6 +4,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.AbstractGlassBlock;
+import net.minecraft.world.level.block.HalfTransparentBlock;
 import net.minecraft.world.level.block.state.BlockState;
 
 import com.eerussianguy.blazemap.api.BlazeRegistry.Key;
@@ -46,5 +48,22 @@ public abstract class Collector<T extends MasterDatum> implements RegistryEntry,
     protected static boolean isLeavesOrReplaceable(Level level, int x, int y, int z) {
         BlockState state = level.getBlockState(POS.set(x, y, z));
         return state.is(BlockTags.LEAVES) || state.isAir() || state.canBeReplaced();
+    }
+
+    /**
+     * Eg: Water, slime, honey, ice, glass
+     */
+    protected static boolean isSemiTransparent(BlockState state) {
+        return (state.getBlock() instanceof HalfTransparentBlock) || state.getFluidState().is(FluidTags.WATER);
+    }
+
+    /**
+     * Pretty much only glass for now
+     *
+     * ...Look, Minecraft doesn't have easy ways to query the transparency of a block,
+     * so this split is the best I can do!
+     */
+    protected static boolean isQuiteTransparent(BlockState state) {
+        return (state.getBlock() instanceof AbstractGlassBlock);
     }
 }

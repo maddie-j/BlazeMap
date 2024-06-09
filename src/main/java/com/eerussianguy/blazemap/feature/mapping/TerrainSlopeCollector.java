@@ -5,7 +5,10 @@ import com.eerussianguy.blazemap.api.builtin.TerrainSlopeMD;
 import com.eerussianguy.blazemap.api.pipeline.Collector;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.BlockPos.MutableBlockPos;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
 
 public class TerrainSlopeCollector extends Collector<TerrainSlopeMD> {
@@ -30,8 +33,24 @@ public class TerrainSlopeCollector extends Collector<TerrainSlopeMD> {
         return new TerrainSlopeMD(slopemap);
     }
 
+    protected static int getNonTransparentHeight(Level level, int x, int z) {
+        int y = level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z) - 1;
+
+        MutableBlockPos blockPos = new MutableBlockPos(x, y, z);
+        BlockState state = level.getBlockState(blockPos);
+
+        // blocksMotion() may be deprecated, but is directly taken from Heightmap.Types.MOTION_BLOCKING.
+        // When the method is gone, can replace with whatever Heightmap.Types.MOTION_BLOCKING swaps to.
+        while (y > level.getMinBuildHeight() && (isQuiteTransparent(state) || !(state.blocksMotion() || !state.getFluidState().isEmpty()))) {
+            y--;
+            state = level.getBlockState(blockPos.move(Direction.DOWN));
+        }
+
+        return y;
+    }
+
     protected static float getSlopeGradient(Level level, int x, int z) {
-        int height = level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z);
+        int height = getNonTransparentHeight(level, x, z);
 
         float nearSlopeTotal = 0;
         float nearSlopeCount = 0;
@@ -83,11 +102,11 @@ public class TerrainSlopeCollector extends Collector<TerrainSlopeMD> {
     }
 
     protected static int getRelativeSlope(Level level, int x, int z, int height, int dx, int dz, boolean isPrimaryShadow) {
-        int adjacentBlockHeight = level.getHeight(Heightmap.Types.MOTION_BLOCKING, x + dx, z + dz);
+        int adjacentBlockHeight = getNonTransparentHeight(level, x + dx, z + dz);
 
         int relativeSlope = adjacentBlockHeight - height;
 
-        if (adjacentBlockHeight <= -64 && level.getBlockState(new BlockPos(x + dx, adjacentBlockHeight, z + dz)).isAir()) {
+        if (adjacentBlockHeight <= level.getMinBuildHeight() && level.getBlockState(new BlockPos(x + dx, adjacentBlockHeight, z + dz)).isAir()) {
             // This block is in an unloaded chunk and can't be processed until BME-47 is dealt with.
             // (Alternatively, somebody's broken through to the void, but that's their own fault!)
             return 0;
