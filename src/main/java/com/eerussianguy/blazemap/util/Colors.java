@@ -1,6 +1,7 @@
 package com.eerussianguy.blazemap.util;
 
 import java.awt.*;
+import java.util.HashMap;
 
 public class Colors {
     public static final int NO_TINT = -1;
@@ -8,6 +9,7 @@ public class Colors {
     public static final int DISABLED = 0x666666;
     public static final int LABEL_COLOR = 0xFF404040;
     public static final int WIDGET_BACKGROUND = 0xA0000000;
+    protected static final HashMap<Integer, Float> darknessPointCache = new HashMap<Integer, Float>();
 
     public static int layerBlend(int bottom, int top) {
         if((top & 0xFF000000) == 0xFF000000) return top; // top is opaque, use top
@@ -31,6 +33,55 @@ public class Colors {
         a *= (1F - p);
         b *= p;
         return Math.max(0, Math.min(255, a + b));
+    }
+
+    public static float interpolate(float a, float b, float p) {
+        a *= (1F - p);
+        b *= p;
+        return Math.max(0, Math.min(1.0f, a + b));
+    }
+
+    public static float[] filter(float[] bottom, float[] top, float opacity, int depth) {
+        // Adjust bottom brightness for light attenuation
+        float point = darknessPointCache.computeIfAbsent(depth, (size) -> {
+            return Math.max(0.2f, 3 - (float)Math.log(size + 1)) / 3f;
+        });
+
+        bottom[2] = bottom[2] * point;
+
+        // // Find average hue
+        // top[0] = (top[0] + bottom[0]) / 2f;
+
+        // if (top[0] > 1) {
+        //     top[0] -= 1.0;
+        // }
+
+        // // Hue
+        // float hueDiff = top[0] - bottom[0];
+        // // Handle the fact that hue is a circle so want to find distance on smallest edge of said circle
+        // float normalizedHueDiff = hueDiff > 0.5f ? hueDiff - 1
+        //     : hueDiff < -0.5 ? hueDiff + 1
+        //     : hueDiff ;
+
+        // top[0] = top[0] + normalizedHueDiff * opacity;
+
+        // if (top[0] > 1) {
+        //     top[0] -= 1.0f;
+        // } else if (top[0] < 0) {
+        //     top[0] += 1.0f;
+        // }
+
+        // Saturation
+        top[1] = interpolate(bottom[1], top[1], opacity);
+
+        // Brightness
+        top[2] = interpolate(bottom[2], top[2], opacity);
+
+        // Opacity
+        // top[3] = Math.min(0.5f, 1 - ((1 - top[3]) * (1 - bottom[3])));
+        top[3] = 1 - ((1 - top[3]) * (1 - bottom[3]));
+
+        return top;
     }
 
     public static int abgr(Color color) {
@@ -62,5 +113,13 @@ public class Colors {
         float g = ((color >> 8) & 0xFF) / 255f;
         float b = ((color) & 0xFF) / 255f;
         return new float[] {r, g, b};
+    }
+
+    public static int[] decomposeIntRGBA(int color) {
+        int a = (int)((color >> 24) & 0xFF);
+        int r = (int)((color >> 16) & 0xFF);
+        int g = (int)((color >> 8) & 0xFF);
+        int b = (int)((color) & 0xFF);
+        return new int[] {a, r, g, b};
     }
 }
