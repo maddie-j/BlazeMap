@@ -1,6 +1,8 @@
 package com.eerussianguy.blazemap.feature.mapping;
 
+import java.util.Stack;
 import java.util.HashMap;
+import java.awt.Color;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.color.block.BlockColors;
@@ -11,16 +13,19 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.material.MapColor;
 
+import com.eerussianguy.blazemap.BlazeMap;
 import com.eerussianguy.blazemap.api.BlazeMapReferences;
 import com.eerussianguy.blazemap.api.builtin.BlockColorMD;
 import com.eerussianguy.blazemap.api.pipeline.ClientOnlyCollector;
+import com.eerussianguy.blazemap.util.Colors;
 
-public class BlockColorCollector extends ClientOnlyCollector<BlockColorMD> {
+public class TransparentColorCollector extends ClientOnlyCollector<BlockColorMD> {
+    // protected static HashMap<Integer, Float> transparencyPointCache = new HashMap<Integer, Float>();
 
-    public BlockColorCollector() {
+    public TransparentColorCollector() {
         super(
-            BlazeMapReferences.Collectors.BLOCK_COLOR,
-            BlazeMapReferences.MasterData.BLOCK_COLOR
+            BlazeMapReferences.Collectors.TRANSPARENT_COLOR,
+            BlazeMapReferences.MasterData.TRANSPARENT_COLOR
         );
     }
 
@@ -34,13 +39,17 @@ public class BlockColorCollector extends ClientOnlyCollector<BlockColorMD> {
             for(int z = 0; z < 16; z++) {
                 int color = getColorAtMapPixel(level, blockColors, blockPos, minX + x, minZ + z);
 
+                // if (Math.random() > 0.99) {
+                //     BlazeMap.LOGGER.info("== {} {} ==", Integer.toHexString(color), color != 0);
+                // }
+                
                 if(color != 0) {
                     colors[x][z] = color;
                 }
             }
         }
 
-        return new BlockColorMD(BlazeMapReferences.MasterData.BLOCK_COLOR, colors);
+        return new BlockColorMD(BlazeMapReferences.MasterData.TRANSPARENT_COLOR, colors);
     }
 
     protected int getColorAtPos(Level level, BlockColors blockColors, BlockState state, BlockPos blockPos) {
@@ -57,8 +66,18 @@ public class BlockColorCollector extends ClientOnlyCollector<BlockColorMD> {
         return color;
     }
 
+    record TransparentBlock(int color, float opacity) {
+        public float[] hsbo() {
+            int[] argb = Colors.decomposeIntRGBA(color);
+            float[] hsbo = new float[] { 0, 0, 0, opacity() };
+            return Color.RGBtoHSB(argb[1], argb[2], argb[3], hsbo);
+        }
+    }
+
     protected int getColorAtMapPixel(Level level, BlockColors blockColors, MutableBlockPos blockPos, int x, int z) {
         int color = 0;
+        float[] hsbo = new float[3];
+        Stack<TransparentBlock> transparentBlocks = new Stack<TransparentBlock>();
 
         for (int y = level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z);
                 y > level.getMinBuildHeight();
@@ -77,6 +96,11 @@ public class BlockColorCollector extends ClientOnlyCollector<BlockColorMD> {
             }
 
             if (isSemiTransparent(state)) {
+                if (isQuiteTransparent(state)) {
+                    transparentBlocks.push(new TransparentBlock(color, 0.5f));
+                } else {
+                    transparentBlocks.push(new TransparentBlock(color, 0.75f));
+                }
                 continue;
             }
 
@@ -84,6 +108,24 @@ public class BlockColorCollector extends ClientOnlyCollector<BlockColorMD> {
             break;
         }
 
-        return color;
+        if (transparentBlocks.size() > 0) {
+            hsbo = transparentBlocks.pop().hsbo();
+            
+            while (transparentBlocks.size() > 0) {
+                TransparentBlock transparentBlock = transparentBlocks.pop();
+                hsbo = Colors.filter(hsbo, transparentBlock.hsbo(), transparentBlock.opacity(), transparentBlocks.size());
+            }
+
+            int finalColor = Color.HSBtoRGB(hsbo[0], hsbo[1], hsbo[2]);
+            int finalOpacity = ((int)(hsbo[3] * 255) << 24) | 0x00FFFFFF;
+
+            // if (Math.random() > 0.99) {
+            //     BlazeMap.LOGGER.info("== {} {} {} ==", Integer.toHexString(finalColor), Integer.toHexString(finalOpacity), Integer.toHexString(finalColor & finalOpacity));
+            // }
+
+            return finalColor & finalOpacity;
+        }
+
+        return 0;
     }
 }

@@ -4,21 +4,30 @@ import java.io.IOException;
 
 import net.minecraft.resources.ResourceLocation;
 
-import com.eerussianguy.blazemap.api.BlazeMapReferences;
+import com.eerussianguy.blazemap.api.BlazeMapAPI;
 import com.eerussianguy.blazemap.api.BlazeRegistry;
 import com.eerussianguy.blazemap.api.builtin.BlockColorMD;
 import com.eerussianguy.blazemap.api.debug.MDInspectionController;
 import com.eerussianguy.blazemap.api.pipeline.DataType;
+import com.eerussianguy.blazemap.api.pipeline.MasterDatum;
 import com.eerussianguy.blazemap.api.util.MinecraftStreams;
 
 public class BlockColorSerializer implements DataType<BlockColorMD> {
+    private final BlazeRegistry.Key<?> id;
+
+    public BlockColorSerializer(BlazeRegistry.Key<DataType<MasterDatum>> id) {
+        this.id = id;
+    }
+
     @Override
     public BlazeRegistry.Key<?> getID() {
-        return BlazeMapReferences.MasterData.BLOCK_COLOR;
+        return this.id;
     }
 
     @Override
     public void serialize(MinecraftStreams.Output stream, BlockColorMD datum) throws IOException {
+        stream.writeKey(datum.getID());
+
         for(int x = 0; x < 16; x++) {
             for(int z = 0; z < 16; z++) {
                 stream.writeInt(datum.colors[x][z]);
@@ -28,6 +37,7 @@ public class BlockColorSerializer implements DataType<BlockColorMD> {
 
     @Override
     public BlockColorMD deserialize(MinecraftStreams.Input stream) throws IOException {
+        BlazeRegistry.Key<DataType<MasterDatum>> id = stream.readKey(BlazeMapAPI.MASTER_DATA);
         int[][] colors = new int[16][16];
 
         for(int x = 0; x < 16; x++) {
@@ -36,7 +46,7 @@ public class BlockColorSerializer implements DataType<BlockColorMD> {
             }
         }
 
-        return new BlockColorMD(colors);
+        return new BlockColorMD(id, colors);
     }
 
     @Override

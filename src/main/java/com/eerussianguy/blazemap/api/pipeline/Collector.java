@@ -58,12 +58,12 @@ public abstract class Collector<T extends MasterDatum> implements RegistryEntry,
     }
 
     /**
-     * Pretty much only glass for now
+     * Pretty much only glass and water for now
      *
      * ...Look, Minecraft doesn't have easy ways to query the transparency of a block,
      * so this split is the best I can do!
      */
     protected static boolean isQuiteTransparent(BlockState state) {
-        return (state.getBlock() instanceof AbstractGlassBlock);
+        return (state.getBlock() instanceof AbstractGlassBlock) || state.getFluidState().is(FluidTags.WATER);
     }
 }
