@@ -1,5 +1,6 @@
 package com.eerussianguy.blazemap.feature.mapping;
 
+import java.util.Stack;
 import java.util.HashMap;
 
 import net.minecraft.client.Minecraft;
@@ -14,8 +15,10 @@ import net.minecraft.world.level.material.MapColor;
 import com.eerussianguy.blazemap.api.BlazeMapReferences;
 import com.eerussianguy.blazemap.api.builtin.BlockColorMD;
 import com.eerussianguy.blazemap.api.pipeline.ClientOnlyCollector;
+import com.eerussianguy.blazemap.util.Colors;
 
 public class BlockColorCollector extends ClientOnlyCollector<BlockColorMD> {
+    protected static final HashMap<Integer, Float> darknessPointCache = new HashMap<Integer, Float>();
 
     public BlockColorCollector() {
         super(
@@ -34,7 +37,7 @@ public class BlockColorCollector extends ClientOnlyCollector<BlockColorMD> {
             for(int z = 0; z < 16; z++) {
                 int color = getColorAtMapPixel(level, blockColors, blockPos, minX + x, minZ + z);
 
-                if(color != 0) {
+                if(color > 0) {
                     colors[x][z] = color;
                 }
             }
@@ -57,8 +60,25 @@ public class BlockColorCollector extends ClientOnlyCollector<BlockColorMD> {
         return color;
     }
 
+    record TransparentBlock(int color, float opacity) {
+        // public float[] hsbo() {
+        //     int[] argb = Colors.decomposeIntRGBA(color);
+        //     float[] hsbo = new float[] { 0, 0, 0, opacity() };
+        //     return Color.RGBtoHSB(argb[1], argb[2], argb[3], hsbo);
+        // }
+
+        public float[] argb() {
+            float[] argb = Colors.decomposeRGBA(color);
+            argb[0] = opacity();
+            return argb;
+        }
+    }
+
     protected int getColorAtMapPixel(Level level, BlockColors blockColors, MutableBlockPos blockPos, int x, int z) {
         int color = 0;
+        // float[] hsbo = new float[4];
+        float[] argb = new float[4];
+        Stack<TransparentBlock> transparentBlocks = new Stack<TransparentBlock>();
 
         for (int y = level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z);
                 y > level.getMinBuildHeight();
@@ -77,11 +97,44 @@ public class BlockColorCollector extends ClientOnlyCollector<BlockColorMD> {
             }
 
             if (isSemiTransparent(state)) {
+                if (isQuiteTransparent(state)) {
+                    transparentBlocks.push(new TransparentBlock(color, 0.125f));
+                } else {
+                    transparentBlocks.push(new TransparentBlock(color, 0.25f));
+                }
                 continue;
             }
 
             // Hasn't met any of the conditions to continue checking the blocks under it, so break
             break;
+        }
+
+        if (transparentBlocks.size() > 0) {
+            // int depth = transparentBlocks.size();
+            int depth = 0;
+            // hsbo = transparentBlocks.pop().hsbo();
+            argb = transparentBlocks.pop().argb();
+
+            while (transparentBlocks.size() > 0) {
+                TransparentBlock transparentBlock = transparentBlocks.pop();
+                // hsbo = Colors.filterHSBO(hsbo, transparentBlock.hsbo(), depth);
+                argb = Colors.filterARGB(argb, transparentBlock.argb(), depth);
+                depth++;
+            }
+
+            // // Adjust bottom brightness for light attenuation
+            // float point = darknessPointCache.computeIfAbsent(depth, (size) -> {
+            //     // return Math.min(2.90f, 0.5f * (float)Math.log(size)) / 3f;
+            //     return Math.max(0f, Math.min(0.99f, (float)Math.log(Math.log(size)) * 0.5f));
+            // });
+
+            // float attenuatedBrightness = Colors.interpolate(hsbo[2], 0.1f, Math.min(depth * 0.05f, 1f));
+            // float attenuatedBrightness = Colors.interpolate(hsbo[2], 0.1f, point);
+
+            // int finalColor = Color.HSBtoRGB(hsbo[0], hsbo[1], attenuatedBrightness);
+            // color = Colors.interpolate(color, 0, finalColor, 1, Math.max(0.75f, hsbo[3])) & 0x00FFFFFF;
+            int finalColor = Colors.recomposeRGBA(argb);
+            color = Colors.interpolate(color, 0, finalColor, 1, Math.max(0.75f, argb[0])) & 0x00FFFFFF;
         }
 
         return color;

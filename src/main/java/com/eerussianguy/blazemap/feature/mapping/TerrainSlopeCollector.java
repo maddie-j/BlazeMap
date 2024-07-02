@@ -3,6 +3,7 @@ package com.eerussianguy.blazemap.feature.mapping;
 import com.eerussianguy.blazemap.api.BlazeMapReferences;
 import com.eerussianguy.blazemap.api.builtin.TerrainSlopeMD;
 import com.eerussianguy.blazemap.api.pipeline.Collector;
+import com.eerussianguy.blazemap.util.Colors;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -50,7 +51,8 @@ public class TerrainSlopeCollector extends Collector<TerrainSlopeMD> {
     }
 
     protected static float getSlopeGradient(Level level, int x, int z) {
-        int height = getNonTransparentHeight(level, x, z);
+        int highestHeight = level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z) - 1;
+        int lowestHeight = getNonTransparentHeight(level, x, z);
 
         float nearSlopeTotal = 0;
         float nearSlopeCount = 0;
@@ -70,7 +72,7 @@ public class TerrainSlopeCollector extends Collector<TerrainSlopeMD> {
 
                 if (dx >= -1 && dz >= -1) {
                     // Adjacent block
-                    int nearSlope = getRelativeSlope(level, x, z, height, dx, dz, true);
+                    int nearSlope = getRelativeSlope(level, x, z, lowestHeight, dx, dz, true);
 
                     if (nearSlope < 0) {
                         nearSlopeTotal += nearSlope;
@@ -83,7 +85,7 @@ public class TerrainSlopeCollector extends Collector<TerrainSlopeMD> {
 
                 } else if (dx >= -2 && dz >= -2) {
                     // Two blocks away
-                    int farSlope = getRelativeSlope(level, x, z, height, dx, dz, false);
+                    int farSlope = getRelativeSlope(level, x, z, lowestHeight, dx, dz, false);
 
                     if (farSlope < -2) {
                         farSlopeTotal += farSlope;
@@ -97,8 +99,18 @@ public class TerrainSlopeCollector extends Collector<TerrainSlopeMD> {
             }
         }
 
-        return (nearSlopeCount != 0 ? nearSlopeTotal / nearSlopeCount : 0) +
-                (farSlopeCount != 0 ? farSlopeTotal / farSlopeCount : 0) / 2;
+        float totalSlope = (nearSlopeCount != 0 ? nearSlopeTotal / nearSlopeCount : 0) +
+            (farSlopeCount != 0 ? farSlopeTotal / farSlopeCount : 0) / 2;
+
+        if (highestHeight != lowestHeight) {
+            // There's transparent blocks between the opaque surface and the sky
+            float point = (1 - Colors.getDarknessPoint(highestHeight - lowestHeight)) * 0.5f;
+            float point2 = point * point;
+
+            totalSlope = Math.max(Math.min(totalSlope * point2, point2), -point2);
+        }
+
+        return totalSlope;
     }
 
     protected static int getRelativeSlope(Level level, int x, int z, int height, int dx, int dz, boolean isPrimaryShadow) {

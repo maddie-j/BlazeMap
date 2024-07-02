@@ -65,5 +65,6 @@ public abstract class Collector<T extends MasterDatum> implements RegistryEntry,
      */
     protected static boolean isQuiteTransparent(BlockState state) {
         return (state.getBlock() instanceof AbstractGlassBlock) || state.getFluidState().is(FluidTags.WATER);
+        // return (state.getBlock() instanceof AbstractGlassBlock);
     }
 }

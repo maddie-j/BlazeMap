@@ -21,6 +21,7 @@ import com.eerussianguy.blazemap.util.Colors;
 
 public class TransparentColorCollector extends ClientOnlyCollector<BlockColorMD> {
     // protected static HashMap<Integer, Float> transparencyPointCache = new HashMap<Integer, Float>();
+    protected static final HashMap<Integer, Float> darknessPointCache = new HashMap<Integer, Float>();
 
     public TransparentColorCollector() {
         super(
@@ -108,23 +109,50 @@ public class TransparentColorCollector extends ClientOnlyCollector<BlockColorMD>
             break;
         }
 
-        if (transparentBlocks.size() > 0) {
-            hsbo = transparentBlocks.pop().hsbo();
+        // if (transparentBlocks.size() > 0) {
+        //     hsbo = transparentBlocks.pop().hsbo();
             
-            while (transparentBlocks.size() > 0) {
-                TransparentBlock transparentBlock = transparentBlocks.pop();
-                hsbo = Colors.filter(hsbo, transparentBlock.hsbo(), transparentBlock.opacity(), transparentBlocks.size());
-            }
+        //     while (transparentBlocks.size() > 0) {
+        //         TransparentBlock transparentBlock = transparentBlocks.pop();
+        //         hsbo = Colors.filter(hsbo, transparentBlock.hsbo(), transparentBlocks.size());
+        //     }
 
-            int finalColor = Color.HSBtoRGB(hsbo[0], hsbo[1], hsbo[2]);
-            int finalOpacity = ((int)(hsbo[3] * 255) << 24) | 0x00FFFFFF;
+        //     int finalColor = Color.HSBtoRGB(hsbo[0], hsbo[1], hsbo[2]);
+        //     int finalOpacity = ((int)(hsbo[3] * 255) << 24) | 0x00FFFFFF;
 
-            // if (Math.random() > 0.99) {
-            //     BlazeMap.LOGGER.info("== {} {} {} ==", Integer.toHexString(finalColor), Integer.toHexString(finalOpacity), Integer.toHexString(finalColor & finalOpacity));
-            // }
+        //     // if (Math.random() > 0.99) {
+        //     //     BlazeMap.LOGGER.info("== {} {} {} ==", Integer.toHexString(finalColor), Integer.toHexString(finalOpacity), Integer.toHexString(finalColor & finalOpacity));
+        //     // }
 
-            return finalColor & finalOpacity;
-        }
+        //     return finalColor & finalOpacity;
+        // }
+
+        
+        // if (transparentBlocks.size() > 0) {
+        //     int depth = transparentBlocks.size();
+        //     hsbo = transparentBlocks.pop().hsbo();
+            
+        //     while (transparentBlocks.size() > 0) {
+        //         TransparentBlock transparentBlock = transparentBlocks.pop();
+        //         hsbo = Colors.filter(hsbo, transparentBlock.hsbo(), depth);
+        //     }
+
+        //     // Adjust bottom brightness for light attenuation
+        //     float point = darknessPointCache.computeIfAbsent(depth, (size) -> {
+        //         // return Math.min(2.90f, 0.5f * (float)Math.log(size)) / 3f;
+        //         return Math.max(0f, Math.min(0.99f, (float)Math.log(Math.log(size)) * 0.5f));
+        //     });
+
+        //     // float attenuatedBrightness = Colors.interpolate(hsbo[2], 0.1f, Math.min(depth * 0.05f, 1f));
+        //     float attenuatedBrightness = Colors.interpolate(hsbo[2], 0.1f, point);
+
+        //     int finalColor = Color.HSBtoRGB(hsbo[0], hsbo[1], attenuatedBrightness);
+        //     // int finalOpacity = ((int)(Math.max(0.75f, hsbo[3]) * 255) << 24) | 0x00FFFFFF;
+        //     int finalOpacity = ((int)(0.50f * 255) << 24) | 0x00FFFFFF;
+
+        //     return finalColor & finalOpacity;
+        //     // color = Colors.interpolate(color, 0, finalColor, 1, Math.max(0.75f, hsbo[3])) & 0x00FFFFFF;
+        // }
 
         return 0;
     }

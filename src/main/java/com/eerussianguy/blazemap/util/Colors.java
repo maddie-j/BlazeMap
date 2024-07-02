@@ -3,6 +3,8 @@ package com.eerussianguy.blazemap.util;
 import java.awt.*;
 import java.util.HashMap;
 
+import com.eerussianguy.blazemap.BlazeMap;
+
 public class Colors {
     public static final int NO_TINT = -1;
     public static final int WHITE = 0xFFFFFFFF;
@@ -41,45 +43,126 @@ public class Colors {
         return Math.max(0, Math.min(1.0f, a + b));
     }
 
-    public static float[] filter(float[] bottom, float[] top, float opacity, int depth) {
-        // Adjust bottom brightness for light attenuation
-        float point = darknessPointCache.computeIfAbsent(depth, (size) -> {
-            return Math.max(0.2f, 3 - (float)Math.log(size + 1)) / 3f;
+    // /**
+    //  * TODO: Attempt using HSB(O)
+    //  * 
+    //  * @param bottom The lower block colour values in hue sat brightness opacity
+    //  * @param top The higher block colour values in hue sat brightness opacity
+    //  * @param depth How many blocks are between this one and the sun
+    //  * @return
+    //  */
+    // public static float[] filterHSBO(float[] bottom, float[] top, int depth) {
+    //     // Adjust bottom brightness for light attenuation
+    //     // float point = darknessPointCache.computeIfAbsent(depth, (size) -> {
+    //     //     // return Math.max(0.2f, 3 - (float)Math.log(size + 1)) / 3f;
+    //     //     return Math.max(0.05f, 1 - (float)Math.log(Math.log(size + 3)));
+    //     // });
+
+    //     // bottom[2] = bottom[2] * 0.75f;
+
+
+    //     // Hue
+    //     float hueDiff = (top[0] - bottom[0]) % 1f;
+    //     // Handle the fact that hue is a circle so want to find distance on smallest edge of said circle
+    //     float normalizedHueDiff = hueDiff > 0.5f ? hueDiff - 1
+    //         : hueDiff < -0.5 ? hueDiff + 1
+    //         : hueDiff ;
+        
+    //     // if ((hueDiff > 0.5f || hueDiff < -0.5f) && Math.random() > 0.95) {
+    //     //     BlazeMap.LOGGER.info("== {} {} {} {} {} ==", top[0], bottom[0], hueDiff, normalizedHueDiff, ((top[0] + normalizedHueDiff * (1 - top[3])) % 1 + 1) % 1);
+    //     // }
+
+    //     top[0] = ((top[0] + normalizedHueDiff * (1 - top[3])) % 1 + 1) % 1;
+
+
+    //     // Opacity
+    //     // top[3] = Math.min(0.5f, 1 - ((1 - top[3]) * (1 - bottom[3])));
+    //     // top[3] = Math.min(0.51f, 1 - ((1 - top[3]) * (1 - bottom[3])));
+    //     top[3] = 1 - ((1 - top[3]) * (1 - bottom[3]));
+    //     // top[3] = 0.25f;
+    //     // top[3] = 1f;
+
+    //     // Saturation
+    //     top[1] = interpolate(bottom[1], top[1], top[3]);
+    //     // top[1] = 1;
+
+    //     // Brightness
+    //     // top[2] = interpolate(bottom[2], top[2], (float)(top[3] / Math.log(depth + 1)));
+    //     // top[2] = interpolate(bottom[2], top[2], (float)(1f / depth));
+    //     top[2] = interpolate(bottom[2], top[2], top[3]);
+    //     // top[2] = interpolate(interpolate(bottom[2], top[2], top[3]), 0.1f, Math.min(depth / 15f, 15));
+    //     // top[2] = interpolate(interpolate(bottom[2], top[2], 0.5f), 0.1f, Math.min(depth * 0.25f, 1f));
+    //     // top[2] = interpolate(bottom[2], interpolate(top[2], 0.1f, Math.min(depth * 0.1f, 1f)), 0.5f);
+
+    //     return top;
+    // }
+
+    public static float getDarknessPoint(int depth) {
+        return darknessPointCache.computeIfAbsent(depth, (size) -> {
+            // 0.1875 == 3/16
+            return Math.min(2.90f, 0.1875f * (float)Math.log(size + 1)) / 3;
+            // return Math.max(0f, Math.min(0.99f, (double)Math.log(Math.log(size)) * 0.5f));
         });
+    }
 
-        bottom[2] = bottom[2] * point;
 
-        // // Find average hue
-        // top[0] = (top[0] + bottom[0]) / 2f;
+    /**
+     * TODO: Attempt using ARGB
+     * 
+     * @param bottom The lower block colour values
+     * @param top The higher block colour values
+     * @param depth How many transparent blocks are below this one
+     * @return
+     */
+    public static float[] filterARGB(float[] bottom, float[] top, int depth) {
+        // Adjust bottom brightness for light attenuation
+        float point = getDarknessPoint(depth);
 
-        // if (top[0] > 1) {
-        //     top[0] -= 1.0;
-        // }
+        for (int i = 1; i < 4; i++) {
+            // if (Math.random() > 0.999) {
+            //     BlazeMap.LOGGER.info("== {} {} {} {} ==", bottom[i], point, bottom[i] * (point), bottom[i] - bottom[i] * (point));
+            // }
+            
+            bottom[i] -= bottom[i] * (point);
 
-        // // Hue
-        // float hueDiff = top[0] - bottom[0];
-        // // Handle the fact that hue is a circle so want to find distance on smallest edge of said circle
-        // float normalizedHueDiff = hueDiff > 0.5f ? hueDiff - 1
-        //     : hueDiff < -0.5 ? hueDiff + 1
-        //     : hueDiff ;
+            // bottom[i] = bottom[i] * (1 - Math.min(1, depth / 16));
+            // top[i] = top[i] > bottom[i] ? 
+            //     top[i] - (top[i] - bottom[i]) * (1 - top[0]) : 
+            //     top[i] * (1 - Math.min(1, depth / 16));
 
-        // top[0] = top[0] + normalizedHueDiff * opacity;
+            // Average the colour intensity
+            top[i] = interpolate(bottom[i], top[i], top[0]);
 
-        // if (top[0] > 1) {
-        //     top[0] -= 1.0f;
-        // } else if (top[0] < 0) {
-        //     top[0] += 1.0f;
-        // }
+            // Attenuate from depth
+            // top[i] *= 1 - Math.min(0.995, depth / 16);
 
-        // Saturation
-        top[1] = interpolate(bottom[1], top[1], opacity);
+        }
+        
+        // // Attenuate bottom values from shadow
+        // bottom[1] = bottom[1] * (1 - Math.min(1, depth / 16));
+        // bottom[2] = bottom[2] * (1 - Math.min(1, depth / 16));
+        // bottom[3] = bottom[3] * (1 - Math.min(1, depth / 16));
 
-        // Brightness
-        top[2] = interpolate(bottom[2], top[2], opacity);
+        // // Red
+        // // if (top[1] > bottom[1]) {
+        // //     top[1] = top[1] - (top[1] - bottom[1]) * (1 - top[0]);
+        // // } else {
+        // //     top[1] = top[1];
+        // // }
+        // top[1] = top[1] > bottom[1] ? top[1] - (top[1] - bottom[1]) * (1 - top[0]) : top[1] * (1 - Math.min(1, depth / 16));
+        // // top[1] -= (top[1] - bottom[1]) * (1 - top[0]);
+
+        // // Green
+        // top[2] = top[2] > bottom[2] ? top[2] - (top[2] - bottom[2]) * (1 - top[0]) : top[2] * (1 - Math.min(1, depth / 16));
+        // // top[2] -= (top[2] - bottom[2]) * (1 - top[0]);
+
+        // // Blue
+        // top[3] = top[3] > bottom[3] ? top[3] - (top[3] - bottom[3]) * (1 - top[0]) : top[3] * (1 - Math.min(1, depth / 16));
+        // // top[3] -= (top[3] - bottom[3]) * (1 - top[0]);
 
         // Opacity
-        // top[3] = Math.min(0.5f, 1 - ((1 - top[3]) * (1 - bottom[3])));
-        top[3] = 1 - ((1 - top[3]) * (1 - bottom[3]));
+        top[0] = 1 - ((1 - top[0]) * (1 - bottom[0]));
+
 
         return top;
     }
@@ -106,6 +189,14 @@ public class Colors {
         float g = ((color >> 8) & 0xFF) / 255f;
         float b = ((color) & 0xFF) / 255f;
         return new float[] {a, r, g, b};
+    }
+
+    public static int recomposeRGBA(float[] color) {
+        int a = (((int)(color[0] * 255f)) & 0xFF);
+        int r = (((int)(color[1] * 255f)) & 0xFF);
+        int g = (((int)(color[2] * 255f)) & 0xFF);
+        int b = (((int)(color[3] * 255f)) & 0xFF);
+        return a << 24 | r << 16 | g << 8 | b;
     }
 
     public static float[] decomposeRGB(int color) {
