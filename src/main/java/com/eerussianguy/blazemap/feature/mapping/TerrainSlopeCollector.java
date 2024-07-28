@@ -34,6 +34,37 @@ public class TerrainSlopeCollector extends Collector<TerrainSlopeMD> {
         return new TerrainSlopeMD(slopemap);
     }
 
+    record Height(int highestHeight, int lowestHeight, float transparency) {}
+
+    protected static Height getHeight(Level level, int x, int z, MutableBlockPos blockPos) {
+        int highestHeight = level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z) - 1;
+        int lowestHeight = highestHeight;
+
+        float transparency = 1;
+
+        if (blockPos == null) {
+            blockPos = new MutableBlockPos(x, lowestHeight, z);
+        }
+
+        BlockState state = level.getBlockState(blockPos);
+
+        // blocksMotion() may be deprecated, but is directly taken from Heightmap.Types.MOTION_BLOCKING.
+        // When the method is gone, can replace with whatever Heightmap.Types.MOTION_BLOCKING swaps to.
+        while (lowestHeight > level.getMinBuildHeight() && (isQuiteTransparent(state) || !(state.blocksMotion() || !state.getFluidState().isEmpty()))) {
+            if (isQuiteTransparent(state)) {
+                transparency = transparency * (1 - Colors.OPACITY_LOW);
+            }
+
+            lowestHeight--;
+            state = level.getBlockState(blockPos.move(Direction.DOWN));
+        }
+
+        // Like with the BlockColor, the minimum opacity/max transparency should be 0.75/0.25
+        transparency = Math.min(0.25f, transparency);
+
+        return new Height(highestHeight, lowestHeight, transparency);
+    }
+
     protected static int getNonTransparentHeight(Level level, int x, int z) {
         int y = level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z) - 1;
 
@@ -51,8 +82,9 @@ public class TerrainSlopeCollector extends Collector<TerrainSlopeMD> {
     }
 
     protected static float getSlopeGradient(Level level, int x, int z) {
-        int highestHeight = level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z) - 1;
-        int lowestHeight = getNonTransparentHeight(level, x, z);
+        Height blockHeight = getHeight(level, x, z, null);
+        int highestHeight = blockHeight.highestHeight;
+        int lowestHeight = blockHeight.lowestHeight;
 
         float nearSlopeTotal = 0;
         float nearSlopeCount = 0;
@@ -102,12 +134,15 @@ public class TerrainSlopeCollector extends Collector<TerrainSlopeMD> {
         float totalSlope = (nearSlopeCount != 0 ? nearSlopeTotal / nearSlopeCount : 0) +
             (farSlopeCount != 0 ? farSlopeTotal / farSlopeCount : 0) / 2;
 
+        // TODO: Handle shadows onto surface of transparent column
+
         if (highestHeight != lowestHeight) {
             // There's transparent blocks between the opaque surface and the sky
-            float point = (1 - Colors.getDarknessPoint(highestHeight - lowestHeight)) * 0.5f;
-            float point2 = point * point;
+            float point = (1 - Colors.getDarknessPoint(highestHeight - lowestHeight));
 
-            totalSlope = Math.max(Math.min(totalSlope * point2, point2), -point2);
+            totalSlope = totalSlope > 0 ? 
+                Math.min(totalSlope * blockHeight.transparency, point * 0.75f) : // shadow
+                Math.max(totalSlope * blockHeight.transparency, -(point * point) * 0.5f); // sunlight
         }
 
         return totalSlope;

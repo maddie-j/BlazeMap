@@ -76,38 +76,38 @@ public class TransparentColorCollector extends ClientOnlyCollector<BlockColorMD>
     }
 
     protected int getColorAtMapPixel(Level level, BlockColors blockColors, MutableBlockPos blockPos, int x, int z) {
-        int color = 0;
-        float[] hsbo = new float[3];
-        Stack<TransparentBlock> transparentBlocks = new Stack<TransparentBlock>();
+        // int color = 0;
+        // float[] hsbo = new float[3];
+        // Stack<TransparentBlock> transparentBlocks = new Stack<TransparentBlock>();
 
-        for (int y = level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z);
-                y > level.getMinBuildHeight();
-                y--) {
-            blockPos.set(x, y, z);
-            final BlockState state = level.getBlockState(blockPos);
+        // for (int y = level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z);
+        //         y > level.getMinBuildHeight();
+        //         y--) {
+        //     blockPos.set(x, y, z);
+        //     final BlockState state = level.getBlockState(blockPos);
 
-            if (state.isAir()) {
-                continue;
-            }
+        //     if (state.isAir()) {
+        //         continue;
+        //     }
 
-            color = getColorAtPos(level, blockColors, state, blockPos);
+        //     color = getColorAtPos(level, blockColors, state, blockPos);
 
-            if (color <= 0) {
-                continue;
-            }
+        //     if (color <= 0) {
+        //         continue;
+        //     }
 
-            if (isSemiTransparent(state)) {
-                if (isQuiteTransparent(state)) {
-                    transparentBlocks.push(new TransparentBlock(color, 0.5f));
-                } else {
-                    transparentBlocks.push(new TransparentBlock(color, 0.75f));
-                }
-                continue;
-            }
+        //     if (isSemiTransparent(state)) {
+        //         if (isQuiteTransparent(state)) {
+        //             transparentBlocks.push(new TransparentBlock(color, 0.5f));
+        //         } else {
+        //             transparentBlocks.push(new TransparentBlock(color, 0.75f));
+        //         }
+        //         continue;
+        //     }
 
-            // Hasn't met any of the conditions to continue checking the blocks under it, so break
-            break;
-        }
+        //     // Hasn't met any of the conditions to continue checking the blocks under it, so break
+        //     break;
+        // }
 
         // if (transparentBlocks.size() > 0) {
         //     hsbo = transparentBlocks.pop().hsbo();
