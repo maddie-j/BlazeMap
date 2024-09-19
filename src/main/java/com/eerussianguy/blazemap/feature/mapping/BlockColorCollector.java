@@ -1,6 +1,7 @@
 package com.eerussianguy.blazemap.feature.mapping;
 
-import java.util.Stack;
+import java.util.Queue;
+import java.util.LinkedList;
 import java.util.HashMap;
 
 import net.minecraft.client.Minecraft;
@@ -115,7 +116,7 @@ public class BlockColorCollector extends ClientOnlyCollector<BlockColorMD> {
         int color = 0;
         // float[] hsbo = new float[4];
         float[] argb = new float[4];
-        Stack<TransparentBlock> transparentBlocks = new Stack<TransparentBlock>();
+        Queue<TransparentBlock> transparentBlocks = new LinkedList<TransparentBlock>();
 
         for (int y = level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z);
                 y > level.getMinBuildHeight();
@@ -135,9 +136,9 @@ public class BlockColorCollector extends ClientOnlyCollector<BlockColorMD> {
 
             if (isSemiTransparent(state)) {
                 if (isQuiteTransparent(state)) {
-                    transparentBlocks.push(new TransparentBlock(color, Colors.OPACITY_LOW));
+                    transparentBlocks.add(new TransparentBlock(color, Colors.OPACITY_LOW));
                 } else {
-                    transparentBlocks.push(new TransparentBlock(color, Colors.OPACITY_HIGH));
+                    transparentBlocks.add(new TransparentBlock(color, Colors.OPACITY_HIGH));
                 }
                 continue;
             }
@@ -148,10 +149,10 @@ public class BlockColorCollector extends ClientOnlyCollector<BlockColorMD> {
 
         if (transparentBlocks.size() > 0) {
             int depth = transparentBlocks.size();
-            argb = transparentBlocks.pop().argb();
+            argb = transparentBlocks.poll().argb();
 
             while (transparentBlocks.size() > 0) {
-                TransparentBlock transparentBlock = transparentBlocks.pop();
+                TransparentBlock transparentBlock = transparentBlocks.poll();
                 argb = Colors.filterARGB(argb, transparentBlock.argb(), depth);
             }
 
