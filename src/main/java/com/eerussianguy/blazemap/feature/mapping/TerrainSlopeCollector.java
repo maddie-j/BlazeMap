@@ -138,11 +138,14 @@ public class TerrainSlopeCollector extends Collector<TerrainSlopeMD> {
 
         if (highestHeight != lowestHeight) {
             // There's transparent blocks between the opaque surface and the sky
-            float point = (1 - Colors.getDarknessPoint(highestHeight - lowestHeight));
+            int depth = highestHeight - lowestHeight;
+
+            // Note: 1/(16^2) = 0.00390625
+            float point = Math.max(1 - 0.00390625f * (depth * depth), 0);
 
             totalSlope = totalSlope > 0 ? 
-                Math.min(totalSlope * blockHeight.transparency, point * 0.75f) : // shadow
-                Math.max(totalSlope * blockHeight.transparency, -(point * point) * 0.5f); // sunlight
+                Math.min(Math.min(totalSlope * blockHeight.transparency, point), 0.5f) : // shadow
+                Math.max(Math.max(totalSlope * blockHeight.transparency, -(point * point)), -0.5f); // sunlight
         }
 
         return totalSlope;
