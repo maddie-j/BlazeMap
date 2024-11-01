@@ -4,10 +4,8 @@ import java.io.*;
 import java.util.Collection;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.ChunkPos;
-import net.minecraft.world.level.Level;
 
 import com.eerussianguy.blazemap.api.BlazeRegistry;
 
@@ -26,11 +24,6 @@ public class MinecraftStreams {
 
         public void writeResourceLocation(ResourceLocation resourceLocation) throws IOException {
             writeUTF(resourceLocation.toString());
-        }
-
-        public void writeDimensionKey(ResourceKey<Level> dimension) throws IOException {
-            writeResourceLocation(dimension.registry());
-            writeResourceLocation(dimension.location());
         }
 
         public <T> void writeKey(BlazeRegistry.Key<T> key) throws IOException {
@@ -65,12 +58,6 @@ public class MinecraftStreams {
 
         public ResourceLocation readResourceLocation() throws IOException {
             return new ResourceLocation(readUTF());
-        }
-
-        public ResourceKey<Level> readDimensionKey() throws IOException {
-            ResourceLocation registry = readResourceLocation();
-            ResourceLocation location = readResourceLocation();
-            return ResourceKey.create(ResourceKey.createRegistryKey(registry), location);
         }
 
         public <T> BlazeRegistry.Key<T> readKey(BlazeRegistry<T> registry) throws IOException {

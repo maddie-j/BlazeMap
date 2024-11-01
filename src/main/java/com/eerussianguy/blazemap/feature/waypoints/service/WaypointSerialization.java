@@ -13,6 +13,7 @@ import net.minecraft.world.level.Level;
 import com.eerussianguy.blazemap.api.markers.Waypoint;
 import com.eerussianguy.blazemap.api.util.MinecraftStreams;
 import com.eerussianguy.blazemap.lib.InheritedBoolean;
+import com.eerussianguy.blazemap.lib.RegistryHelper;
 import com.eerussianguy.blazemap.lib.io.FormatSpec;
 import com.eerussianguy.blazemap.lib.io.Format;
 import com.eerussianguy.blazemap.lib.io.FormatVersion;
@@ -29,7 +30,7 @@ public class WaypointSerialization {
         public void write(Map<ResourceKey<Level>, List<WaypointGroup>> data, MinecraftStreams.Output output) throws IOException {
             // Write non-empty dimensions
             output.writeCollection(data.entrySet().stream().filter(e -> e.getValue().size() > 0).toList(), entry -> {
-                output.writeDimensionKey(entry.getKey());
+                output.writeResourceLocation(entry.getKey().location());
 
                 // Write groups in dimension
                 output.writeCollection(entry.getValue(), group -> {
@@ -59,7 +60,7 @@ public class WaypointSerialization {
 
             // Read non-empty dimensions
             input.readCollection(() -> {
-                ResourceKey<Level> dimension = input.readDimensionKey();
+                ResourceKey<Level> dimension = RegistryHelper.getDimension(input.readResourceLocation());
                 ArrayList<WaypointGroup> groups = new ArrayList<>();
                 data.put(dimension, groups);
 
@@ -99,7 +100,7 @@ public class WaypointSerialization {
             input.readCollection(() -> {
                 Waypoint waypoint = new Waypoint(
                     input.readResourceLocation(),
-                    input.readDimensionKey(),
+                    readDeprecatedLegacyDimension(input),
                     input.readBlockPos(),
                     input.readUTF(),
                     input.readResourceLocation(),
@@ -109,5 +110,13 @@ public class WaypointSerialization {
             });
             return data;
         };
+
+        /** @deprecated storing the registry name is stupid and ResourceLocation suffices  */
+        @Deprecated(since="1.18.2-0.8.0", forRemoval = true)
+        private static ResourceKey<Level> readDeprecatedLegacyDimension(MinecraftStreams.Input input) throws IOException {
+            ResourceLocation registry = input.readResourceLocation();
+            ResourceLocation location = input.readResourceLocation();
+            return ResourceKey.create(ResourceKey.createRegistryKey(registry), location);
+        }
     }
 }

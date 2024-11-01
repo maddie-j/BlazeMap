@@ -94,4 +94,10 @@ public abstract class BaseComponent<T extends BaseComponent<T>> extends Position
 
     @Override //TODO: maybe, just MAYBE, one day do this
     public void updateNarration(NarrationElementOutput p_169152_) {}
+
+    /** Transforms an input into its equivalent component representation */
+    @FunctionalInterface
+    public interface Materializer<T> {
+        BaseComponent<?> transform(T input);
+    }
 }

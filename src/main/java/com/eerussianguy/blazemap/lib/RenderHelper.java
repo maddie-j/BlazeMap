@@ -28,6 +28,7 @@ public class RenderHelper {
         setShaderColor(color);
         RenderSystem.setShaderTexture(0, texture);
         RenderSystem.setShader(ShaderHelper::getTextureShader);
+        RenderSystem.enableBlend();
         BufferBuilder bufferbuilder = Tesselator.getInstance().getBuilder();
         bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
         bufferbuilder.vertex(matrix, (float)px0, (float)py1, (float)pz).uv(u0, v1).endVertex();

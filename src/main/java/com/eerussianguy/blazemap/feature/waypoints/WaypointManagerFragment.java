@@ -10,22 +10,23 @@ import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.Level;
 
 import com.eerussianguy.blazemap.BlazeMap;
 import com.eerussianguy.blazemap.api.markers.Waypoint;
 import com.eerussianguy.blazemap.feature.waypoints.service.*;
-import com.eerussianguy.blazemap.lib.Colors;
-import com.eerussianguy.blazemap.lib.Helpers;
-import com.eerussianguy.blazemap.lib.InheritedBoolean;
-import com.eerussianguy.blazemap.lib.RenderHelper;
+import com.eerussianguy.blazemap.lib.*;
 import com.eerussianguy.blazemap.lib.gui.components.IconTabs;
 import com.eerussianguy.blazemap.lib.gui.components.Label;
-import com.eerussianguy.blazemap.lib.gui.components.TreeContainer;
+import com.eerussianguy.blazemap.lib.gui.components.Tree;
 import com.eerussianguy.blazemap.lib.gui.components.TextButton;
+import com.eerussianguy.blazemap.lib.gui.components.selection.DropdownList;
 import com.eerussianguy.blazemap.lib.gui.core.ContainerAnchor;
 import com.eerussianguy.blazemap.lib.gui.core.EdgeReference;
 import com.eerussianguy.blazemap.lib.gui.core.TooltipService;
+import com.eerussianguy.blazemap.lib.gui.core.VolatileContainer;
 import com.eerussianguy.blazemap.lib.gui.fragment.BaseFragment;
 import com.eerussianguy.blazemap.lib.gui.fragment.FragmentContainer;
 import com.eerussianguy.blazemap.lib.gui.trait.BorderedComponent;
@@ -40,7 +41,7 @@ public class WaypointManagerFragment extends BaseFragment {
     }
 
     @Override
-    public void compose(FragmentContainer container) {
+    public void compose(FragmentContainer container, VolatileContainer volatiles) {
         WaypointServiceClient client = WaypointServiceClient.instance();
         int y = 0;
 
@@ -55,7 +56,7 @@ public class WaypointManagerFragment extends BaseFragment {
         container.add(tabs, 0, y);
 
         for(var pool : client.getPools()) {
-            var pc = new PoolContainer(container::dismiss, pool);
+            var pc = new PoolContainer(volatiles, container::dismiss, pool);
             container.add(pc, 0, y + 25);
             tabs.add(pc);
         }
@@ -63,11 +64,13 @@ public class WaypointManagerFragment extends BaseFragment {
 
     // =================================================================================================================
     private static class PoolContainer extends FragmentContainer implements IconTabs.TabComponent {
+        private final VolatileContainer volatiles;
         private final List<Component> tooltip = new ArrayList<>();
         private final WaypointPool pool;
 
-        private PoolContainer(Runnable dismiss, WaypointPool pool) {
+        private PoolContainer(VolatileContainer volatiles, Runnable dismiss, WaypointPool pool) {
             super(dismiss, 0);
+            this.volatiles = volatiles;
             this.pool = pool;
             tooltip.add(pool.getName());
             tooltip.add(new TextComponent("Blaze Map").withStyle(ChatFormatting.BLUE)); // TODO: temporary
@@ -76,18 +79,29 @@ public class WaypointManagerFragment extends BaseFragment {
 
         private void construct() {
             clear();
-            var list = new TreeContainer().setSize(MANAGER_UI_WIDTH, 160);
-            add(list, 0, 0);
-            var groups = pool.getGroups(Helpers.levelOrThrow().dimension());
-            for(var group : groups) {
-                list.addItem(new NodeItem(group, () -> groups.remove(group)));
-            }
+
+            DropdownList<ResourceKey<Level>> dimensions = new DropdownList<>(volatiles, d -> new Label(d.location().toString()));
+            var model = dimensions.getModel();
+            model.setElements(RegistryHelper.getAllDimensions());
+            model.setSelected(Helpers.levelOrThrow().dimension());
+            add(dimensions.setSize(MANAGER_UI_WIDTH, 14), 0, 0);
+
+            Tree tree = new Tree().setSize(MANAGER_UI_WIDTH, 160);
+            add(tree, 0, 17);
+            model.addSelectionListener(dimension -> {
+                tree.clearItems();
+                var groups = pool.getGroups(dimension);
+                for(var group : groups) {
+                    tree.addItem(new NodeItem(group, () -> groups.remove(group)));
+                }
+            });
+
             var addButton = new TextButton(new TextComponent("Add Group"), button -> { // TODO: temporary
                 pool.getGroups(Helpers.levelOrThrow().dimension()).add(WaypointGroup.make(WaypointChannelLocal.GROUP_DEFAULT));
                 PoolContainer.this.construct();
             }).setSize(MANAGER_UI_WIDTH / 2 - 1, 14);
             addButton.setEnabled(pool.canUserCreate());
-            add(addButton, 0, 162);
+            add(addButton, 0, 179);
         }
 
         @Override
@@ -116,7 +130,7 @@ public class WaypointManagerFragment extends BaseFragment {
         private static final ResourceLocation ADD = BlazeMap.resource("textures/gui/add.png");
 
         private final WaypointGroup group;
-        private final ArrayList<? extends TreeContainer.TreeItem> children;
+        private final ArrayList<? extends Tree.TreeItem> children;
         private final EdgeReference add = new EdgeReference(this, ContainerAnchor.TOP_RIGHT).setSize(8, 8).setPosition(22, 2);
         private boolean open = true;
 
@@ -151,10 +165,10 @@ public class WaypointManagerFragment extends BaseFragment {
         }
 
         @Override @SuppressWarnings("unchecked")
-        public List<TreeContainer.TreeItem> getChildren() {
+        public List<Tree.TreeItem> getChildren() {
             if(open) {
-                children.removeIf(TreeContainer.TreeItem::wasDeleted);
-                return (List<TreeContainer.TreeItem>) children;
+                children.removeIf(Tree.TreeItem::wasDeleted);
+                return (List<Tree.TreeItem>) children;
             } else {
                 return Collections.EMPTY_LIST;
             }
@@ -272,7 +286,7 @@ public class WaypointManagerFragment extends BaseFragment {
     }
 
     // =================================================================================================================
-    private static class TreeNode extends Label implements TreeContainer.TreeItem, BorderedComponent, ComponentSounds, GuiEventListener {
+    private static class TreeNode extends Label implements Tree.TreeItem, BorderedComponent, ComponentSounds, GuiEventListener {
         private static final ResourceLocation REMOVE = BlazeMap.resource("textures/gui/remove.png");
         private static final ResourceLocation ON_OVERRIDE   = BlazeMap.resource("textures/gui/on.png");
         private static final ResourceLocation ON_INHERITED  = BlazeMap.resource("textures/gui/on_inherited.png");

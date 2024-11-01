@@ -8,6 +8,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 
 import com.eerussianguy.blazemap.lib.gui.core.AbsoluteContainer;
+import com.eerussianguy.blazemap.lib.gui.core.VolatileContainer;
 
 public abstract class BaseFragment {
     protected final boolean standalone, hosted;
@@ -29,10 +30,10 @@ public abstract class BaseFragment {
         return title;
     }
 
-    public abstract void compose(FragmentContainer container);
+    public abstract void compose(FragmentContainer container, VolatileContainer volatiles);
 
-    public void compose(FragmentContainer container, @Nullable AbsoluteContainer absolute) {
-        compose(container);
+    public void compose(FragmentContainer container, VolatileContainer volatiles, @Nullable AbsoluteContainer absolute) {
+        compose(container, volatiles);
     }
 
     public boolean open() {
