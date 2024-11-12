@@ -107,7 +107,7 @@ public class BlockColorCollector extends ClientOnlyCollector<BlockColorMD> {
     record TransparentBlock(int color, float opacity) {
         public float[] argb() {
             float[] argb = Colors.decomposeRGBA(color);
-            argb[0] = opacity();
+            argb[0] = this.opacity;
             return argb;
         }
     }
@@ -150,13 +150,14 @@ public class BlockColorCollector extends ClientOnlyCollector<BlockColorMD> {
         if (transparentBlocks.size() > 0) {
             int depth = transparentBlocks.size();
             argb = transparentBlocks.poll().argb();
+            argb[0] = Math.max(0.5f, argb[0]); // Top layer must be minimum this colour as it should be the easiest to see
 
             while (transparentBlocks.size() > 0) {
                 TransparentBlock transparentBlock = transparentBlocks.poll();
                 argb = Colors.filterARGB(argb, transparentBlock.argb(), depth);
             }
 
-            color = Colors.recomposeRGBA(Colors.filterARGB(Colors.decomposeRGBA(color), new float[] {0,0,0,0}, depth));
+            color = Colors.recomposeRGBA(Colors.filterARGB(new float[] {0,0,0,0}, Colors.decomposeRGBA(color), depth));
             int finalColor = Colors.recomposeRGBA(argb);
             color = Colors.interpolate(
                 color, 0, 

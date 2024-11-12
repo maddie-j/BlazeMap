@@ -13,7 +13,7 @@ public class Colors {
     public static final int WIDGET_BACKGROUND = 0xA0000000;
 
     public static final float OPACITY_LOW = 0.1875f; // 3/16ths
-    public static final float OPACITY_HIGH = 0.75f;
+    public static final float OPACITY_HIGH = 0.85f;
 
     protected static final HashMap<Integer, Float> darknessPointCache = new HashMap<Integer, Float>();
 
@@ -48,12 +48,24 @@ public class Colors {
     }
 
 
+    /**
+     * This is a value to represent the lessening light that passes through semitransparent objects.
+     * Will always be in the range [0 - 0.96667] (aka 0 to almost but not quite 1).
+     * Higher is more shadowed.
+     * 
+     * @param depth How many transparent blocks the light has passed through
+     */
     public static float getDarknessPoint(int depth) {
         return darknessPointCache.computeIfAbsent(depth, (size) -> {
-            // 0.1875 == 3/16
-            // return Math.min(2.90f, 0.5f * (float)Math.log(size + 1)) / 3;
+            // return Math.min(2.90f, 0.125f * (float)Math.log(size + 1)) / 3;
 
-            return Math.min(2.90f, 0.125f * (float)Math.log(size + 1)) / 3;
+            // return Math.min(0.00390625f * (depth * depth), 0.9667f);
+            // return Math.min(0.015625f * (depth), 0.9667f);
+
+            return Math.min(2.90f, 0.375f * (float)Math.log(size + 1)) / 3;
+
+            // 0.1875 == 3/16
+
             // return Math.max(0f, Math.min(0.99f, (double)Math.log(Math.log(size)) * 0.5f));
         });
     }
@@ -62,12 +74,12 @@ public class Colors {
     /**
      * TODO: Attempt using ARGB
      * 
-     * @param bottom The lower block colour values
      * @param top The higher block colour values
+     * @param bottom The lower block colour values
      * @param depth How many transparent blocks are below this one
      * @return
      */
-    public static float[] filterARGB(float[] bottom, float[] top, int depth) {
+    public static float[] filterARGB(float[] top, float[] bottom, int depth) {
         // Adjust bottom brightness for light attenuation
         float point = getDarknessPoint(depth);
 
@@ -75,18 +87,18 @@ public class Colors {
             // if (Math.random() > 0.999) {
             //     BlazeMap.LOGGER.info("== {} {} {} {} ==", bottom[i], point, bottom[i] * (point), bottom[i] - bottom[i] * (point));
             // }
-            
+
             // Attenuate from depth
             bottom[i] -= bottom[i] * (point);
 
             // Filter the below colour through the above colour
-            top[i] = interpolate(bottom[i], top[i], top[0]);
+            bottom[i] = interpolate(bottom[i], top[i], top[0]);
         }
 
         // Adjust opacity
-        top[0] = 1 - ((1 - top[0]) * (1 - bottom[0]));
+        bottom[0] = 1 - ((1 - bottom[0]) * (1 - top[0]));
 
-        return top;
+        return bottom;
     }
 
     public static int abgr(Color color) {

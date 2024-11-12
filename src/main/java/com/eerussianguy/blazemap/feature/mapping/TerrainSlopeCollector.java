@@ -144,8 +144,8 @@ public class TerrainSlopeCollector extends Collector<TerrainSlopeMD> {
             float point = Math.max(1 - 0.00390625f * (depth * depth), 0);
 
             totalSlope = totalSlope > 0 ? 
-                Math.min(Math.min(totalSlope * blockHeight.transparency, point), 0.5f) : // shadow
-                Math.max(Math.max(totalSlope * blockHeight.transparency, -(point * point)), -0.5f); // sunlight
+                Math.min(Math.min(totalSlope * blockHeight.transparency, point), 0.25f) : // shadow
+                Math.max(Math.max(totalSlope * blockHeight.transparency, -(point * point)), -0.3125f); // sunlight
         }
 
         return totalSlope;
