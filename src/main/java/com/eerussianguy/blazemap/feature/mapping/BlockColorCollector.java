@@ -134,7 +134,7 @@ public class BlockColorCollector extends ClientOnlyCollector<BlockColorMD> {
                 continue;
             }
 
-            if (isSemiTransparent(state)) {
+            if (isTransparent(state)) {
                 if (isQuiteTransparent(state)) {
                     transparentBlocks.add(new TransparentBlock(color, Colors.OPACITY_LOW));
                 } else {
