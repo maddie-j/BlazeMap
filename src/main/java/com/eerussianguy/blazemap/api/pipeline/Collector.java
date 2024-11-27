@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.tags.TagKey;
@@ -14,6 +15,7 @@ import net.minecraft.world.level.block.HalfTransparentBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FluidState;
+import net.minecraft.world.phys.shapes.VoxelShape;
 
 import com.eerussianguy.blazemap.api.BlazeRegistry.Key;
 import com.eerussianguy.blazemap.api.BlazeRegistry.RegistryEntry;
@@ -94,6 +96,12 @@ public abstract class Collector<T extends MasterDatum> implements RegistryEntry,
     private static final Set<TagKey<Block>> transparentBlockTags = initialiseTransparentBlockSet(false);
     private static final Set<TagKey<Block>> quiteTransparentBlockTags = initialiseTransparentBlockSet(true);
 
+    public enum TransparencyState {
+        AIR,
+        SEMI_TRANSPARENT,
+        QUITE_TRANSPARENT,
+        OPAQUE
+    }
 
     private static final Set<Class<?>> initialiseTransparentClassSet (boolean isQuiteTransparent) {
         Set<Class<?>> newTransparencyList = new HashSet<Class<?>>();
@@ -140,21 +148,45 @@ public abstract class Collector<T extends MasterDatum> implements RegistryEntry,
     }
 
 
+    // /**
+    //  * Eg: Water, slime, honey, ice, glass
+    //  */
+    // protected static boolean isTransparent(BlockState testBlockState) {
+    //     Block testBlock = testBlockState.getBlock();
+    //     FluidState testFluid = testBlockState.getFluidState();
+
+    //     for (Class<?> transparentClass : transparentClasses) {
+    //         if (transparentClass.isAssignableFrom(testBlock.getClass())) {
+    //             return true;
+    //         }
+    //     }
+
+    //     for (TagKey<Fluid> transparentFluid: transparentFluidTags) {
+    //         if (testFluid.is(transparentFluid)) {
+    //             return true;
+    //         }
+    //     }
+
+    //     for (TagKey<Block> transparentBlock: transparentBlockTags) {
+    //         if (testBlockState.is(transparentBlock)) {
+    //             return true;
+    //         }
+    //     }
+
+    //     // Else, hasn't matched anything above
+    //     return false;
+
+    //     // return (testBlockState.getBlock() instanceof HalfTransparentBlock) || testBlockState.getFluidState().is(FluidTags.WATER);
+    // }
+
     /**
-     * Eg: Water, slime, honey, ice, glass
+     * Eg: Slime, honey, ice, glass
      */
-    protected static boolean isTransparent(BlockState testBlockState) {
+    protected static boolean isTransparentBlock(BlockState testBlockState) {
         Block testBlock = testBlockState.getBlock();
-        FluidState testFluid = testBlockState.getFluidState();
 
         for (Class<?> transparentClass : transparentClasses) {
             if (transparentClass.isAssignableFrom(testBlock.getClass())) {
-                return true;
-            }
-        }
-
-        for (TagKey<Fluid> transparentFluid: transparentFluidTags) {
-            if (testFluid.is(transparentFluid)) {
                 return true;
             }
         }
@@ -167,25 +199,63 @@ public abstract class Collector<T extends MasterDatum> implements RegistryEntry,
 
         // Else, hasn't matched anything above
         return false;
-
-        // return (testBlockState.getBlock() instanceof HalfTransparentBlock) || testBlockState.getFluidState().is(FluidTags.WATER);
     }
 
     /**
-     * Pretty much only glass and water by default
+     * Eg: Water
      */
-    protected static boolean isQuiteTransparent(BlockState testBlockState) {
-        Block testBlock = testBlockState.getBlock();
+    protected static boolean isTransparentFluid(BlockState testBlockState) {
         FluidState testFluid = testBlockState.getFluidState();
 
-        for (Class<?> transparentClass : quiteTransparentClasses) {
-            if (transparentClass.isAssignableFrom(testBlock.getClass())) {
+        for (TagKey<Fluid> transparentFluid: transparentFluidTags) {
+            if (testFluid.is(transparentFluid)) {
                 return true;
             }
         }
 
-        for (TagKey<Fluid> transparentFluid: quiteTransparentFluidTags) {
-            if (testFluid.is(transparentFluid)) {
+        // Else, hasn't matched anything above
+        return false;
+    }
+
+    // /**
+    //  * Pretty much only glass and water by default
+    //  */
+    // protected static boolean isQuiteTransparent(BlockState testBlockState) {
+    //     Block testBlock = testBlockState.getBlock();
+    //     FluidState testFluid = testBlockState.getFluidState();
+
+    //     for (Class<?> transparentClass : quiteTransparentClasses) {
+    //         if (transparentClass.isAssignableFrom(testBlock.getClass())) {
+    //             return true;
+    //         }
+    //     }
+
+    //     for (TagKey<Fluid> transparentFluid: quiteTransparentFluidTags) {
+    //         if (testFluid.is(transparentFluid)) {
+    //             return true;
+    //         }
+    //     }
+
+    //     for (TagKey<Block> transparentBlock: quiteTransparentBlockTags) {
+    //         if (testBlockState.is(transparentBlock)) {
+    //             return true;
+    //         }
+    //     }
+
+    //     // Else, hasn't matched anything above
+    //     return false;
+
+    //     // return (state.getBlock() instanceof AbstractGlassBlock) || state.getFluidState().is(FluidTags.WATER);
+    // }
+
+    /**
+     * Eg: Glass
+     */
+    protected static boolean isQuiteTransparentBlock(BlockState testBlockState) {
+        Block testBlock = testBlockState.getBlock();
+
+        for (Class<?> transparentClass : quiteTransparentClasses) {
+            if (transparentClass.isAssignableFrom(testBlock.getClass())) {
                 return true;
             }
         }
@@ -198,10 +268,89 @@ public abstract class Collector<T extends MasterDatum> implements RegistryEntry,
 
         // Else, hasn't matched anything above
         return false;
+    }
+    /**
+     * Eg: Water
+     */
+    protected static boolean isQuiteTransparentFluid(BlockState testBlockState) {
+        FluidState testFluid = testBlockState.getFluidState();
 
-        // return (state.getBlock() instanceof AbstractGlassBlock) || state.getFluidState().is(FluidTags.WATER);
+        for (TagKey<Fluid> transparentFluid: quiteTransparentFluidTags) {
+            if (testFluid.is(transparentFluid)) {
+                return true;
+            }
+        }
+
+        // Else, hasn't matched anything above
+        return false;
     }
 
+    protected static TransparencyState canSeeThroughPos(BlockState state, Level level, BlockPos blockPos) {
+        if (state.isAir()) {
+            return TransparencyState.AIR;
+        }
+
+        // Test if top or bottom face of block is "full"
+        VoxelShape blockShape = state.getShape(level, blockPos);
+        boolean isTopFull = Block.isFaceFull(blockShape, Direction.UP);
+        boolean isBottomFull = Block.isFaceFull(blockShape, Direction.DOWN);
+
+        // // TODO: For debugging reasons:
+        // Block thisBlockType = state.getBlock();
+        // String thisBlockName = state.getBlock().getDescriptionId();
+
+        if (isTopFull) {
+            // Normal block transparency rules
+            if (isTransparentBlock(state)) {
+                if (isQuiteTransparentBlock(state)) {
+                    return TransparencyState.QUITE_TRANSPARENT;
+                } else {
+                    return TransparencyState.SEMI_TRANSPARENT;
+                }
+            }
+
+        } else if (isBottomFull) {
+            if (state.getFluidState().isEmpty()) {
+                // Normal block transparency rules
+                if (isTransparentBlock(state)) {
+                    if (isQuiteTransparentBlock(state)) {
+                        return TransparencyState.QUITE_TRANSPARENT;
+                    } else {
+                        return TransparencyState.SEMI_TRANSPARENT;
+                    }
+                }
+
+            } else {
+                // Filter block color through fluid colour based on fluid transparency rules.
+                // TODO
+
+                // Total opacity based on highest opacity between fluid and solid.
+                if (isTransparentBlock(state) && isTransparentFluid(state)) {
+                    if (isQuiteTransparentBlock(state) && isQuiteTransparentFluid(state)) {
+                        return TransparencyState.QUITE_TRANSPARENT;
+                    } else {
+                        return TransparencyState.SEMI_TRANSPARENT;
+                    }
+                }
+            }
+        } else {
+            // Filter block color through fluid colour based on fluid transparency rules.
+            // TODO
+
+            // Not a solid block.
+            // Total opacity based on fluid opacity.
+            if (isTransparentFluid(state)) {
+                if (isQuiteTransparentFluid(state)) {
+                    return TransparencyState.QUITE_TRANSPARENT;
+                } else {
+                    return TransparencyState.SEMI_TRANSPARENT;
+                }
+            }
+        }
+
+        // Did not pass any transparency checks, so must be opaque
+        return TransparencyState.OPAQUE;
+    }
 
     // External API for other mods to mark their own blocks as transparent.
     // TODO: Should probably make a custom blocktag at some point specifically for folks to apply to their

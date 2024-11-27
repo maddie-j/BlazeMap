@@ -8,18 +8,17 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.color.block.BlockColors;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.BlockPos.MutableBlockPos;
-import net.minecraft.tags.BlockTags;
+import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.BushBlock;
-import net.minecraft.world.level.block.FlowerBlock;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.KelpPlantBlock;
 import net.minecraft.world.level.block.SeagrassBlock;
 import net.minecraft.world.level.block.TallSeagrassBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.material.MapColor;
+import net.minecraft.world.phys.shapes.VoxelShape;
 
-import com.eerussianguy.blazemap.BlazeMap;
 import com.eerussianguy.blazemap.api.BlazeMapReferences;
 import com.eerussianguy.blazemap.api.builtin.BlockColorMD;
 import com.eerussianguy.blazemap.api.pipeline.ClientOnlyCollector;
@@ -114,7 +113,6 @@ public class BlockColorCollector extends ClientOnlyCollector<BlockColorMD> {
 
     protected int getColorAtMapPixel(Level level, BlockColors blockColors, MutableBlockPos blockPos, int x, int z) {
         int color = 0;
-        // float[] hsbo = new float[4];
         float[] argb = new float[4];
         Queue<TransparentBlock> transparentBlocks = new LinkedList<TransparentBlock>();
 
@@ -134,12 +132,13 @@ public class BlockColorCollector extends ClientOnlyCollector<BlockColorMD> {
                 continue;
             }
 
-            if (isTransparent(state)) {
-                if (isQuiteTransparent(state)) {
-                    transparentBlocks.add(new TransparentBlock(color, Colors.OPACITY_LOW));
-                } else {
-                    transparentBlocks.add(new TransparentBlock(color, Colors.OPACITY_HIGH));
-                }
+            TransparencyState transparency = canSeeThroughPos(state, level, blockPos);
+
+            if (transparency == TransparencyState.SEMI_TRANSPARENT) {
+                transparentBlocks.add(new TransparentBlock(color, Colors.OPACITY_HIGH));
+                continue;
+            } else if (transparency == TransparencyState.QUITE_TRANSPARENT) {
+                transparentBlocks.add(new TransparentBlock(color, Colors.OPACITY_LOW));
                 continue;
             }
 

@@ -50,8 +50,13 @@ public class TerrainSlopeCollector extends Collector<TerrainSlopeMD> {
 
         // blocksMotion() may be deprecated, but is directly taken from Heightmap.Types.MOTION_BLOCKING.
         // When the method is gone, can replace with whatever Heightmap.Types.MOTION_BLOCKING swaps to.
-        while (lowestHeight > level.getMinBuildHeight() && (isQuiteTransparent(state) || !(state.blocksMotion() || !state.getFluidState().isEmpty()))) {
-            if (isQuiteTransparent(state)) {
+        while (lowestHeight > level.getMinBuildHeight()
+                && (
+                    (canSeeThroughPos(state, level, blockPos) == TransparencyState.QUITE_TRANSPARENT)
+                    || !(state.blocksMotion() || !state.getFluidState().isEmpty())
+                    )
+               ) {
+            if (canSeeThroughPos(state, level, blockPos) == TransparencyState.QUITE_TRANSPARENT) {
                 transparency = transparency * (1 - Colors.OPACITY_LOW);
             }
 
@@ -73,7 +78,12 @@ public class TerrainSlopeCollector extends Collector<TerrainSlopeMD> {
 
         // blocksMotion() may be deprecated, but is directly taken from Heightmap.Types.MOTION_BLOCKING.
         // When the method is gone, can replace with whatever Heightmap.Types.MOTION_BLOCKING swaps to.
-        while (y > level.getMinBuildHeight() && (isQuiteTransparent(state) || !(state.blocksMotion() || !state.getFluidState().isEmpty()))) {
+        while (y > level.getMinBuildHeight()
+            && (
+                (canSeeThroughPos(state, level, blockPos) == TransparencyState.QUITE_TRANSPARENT)
+                || !(state.blocksMotion() || !state.getFluidState().isEmpty())
+                )
+           ) {
             y--;
             state = level.getBlockState(blockPos.move(Direction.DOWN));
         }
