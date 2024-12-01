@@ -8,21 +8,21 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.color.block.BlockColors;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.BlockPos.MutableBlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.KelpPlantBlock;
 import net.minecraft.world.level.block.SeagrassBlock;
 import net.minecraft.world.level.block.TallSeagrassBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.material.MapColor;
-import net.minecraft.world.phys.shapes.VoxelShape;
 
 import com.eerussianguy.blazemap.api.BlazeMapReferences;
 import com.eerussianguy.blazemap.api.builtin.BlockColorMD;
 import com.eerussianguy.blazemap.api.pipeline.ClientOnlyCollector;
 import com.eerussianguy.blazemap.util.Colors;
+import com.eerussianguy.blazemap.util.Transparency;
+import com.eerussianguy.blazemap.util.Transparency.ColorMixState;
+import com.eerussianguy.blazemap.util.Transparency.TransparencyState;
 
 public class BlockColorCollector extends ClientOnlyCollector<BlockColorMD> {
     protected static final HashMap<Integer, Float> darknessPointCache = new HashMap<Integer, Float>();
@@ -60,16 +60,13 @@ public class BlockColorCollector extends ClientOnlyCollector<BlockColorMD> {
      * @param state
      * @return
      */
-    protected int handleSpecialCases(BlockState state) {
+    protected static int handleSpecialCases(BlockState state) {
         var block = state.getBlock();
 
         // By default, the colour returned for seagrass is purple, so replacing with a green picked from
         // its texture 
         if (block instanceof SeagrassBlock || block instanceof TallSeagrassBlock || block instanceof KelpPlantBlock) {
             return 0x215800;
-            // return 0x2f8200;
-            // return 0x509529;
-            // return 0x009500;
         }
 
         // if (block instanceof FlowerBlock) {
@@ -81,11 +78,7 @@ public class BlockColorCollector extends ClientOnlyCollector<BlockColorMD> {
         return 0;
     }
 
-    protected int getColorAtPos(Level level, BlockColors blockColors, BlockState state, BlockPos blockPos) {
-        // if (state.getBlock() instanceof BushBlock && Math.random() > 0.98) {
-        //     BlazeMap.LOGGER.info("=== {}  \t{}  \t{}  \t{} ===", state.getBlock().getClass().getName(), Integer.toHexString(blockColors.getColor(state, level, blockPos, 0)), Integer.toHexString(state.getMapColor(level, blockPos).col), Integer.toHexString(handleSpecialCases(state)));
-        // }
-
+    protected static int getColorAtPos(Level level, BlockColors blockColors, BlockState state, BlockPos blockPos) {
         int color = handleSpecialCases(state);
 
         if (color <= 0) {
@@ -103,18 +96,10 @@ public class BlockColorCollector extends ClientOnlyCollector<BlockColorMD> {
         return color;
     }
 
-    record TransparentBlock(int color, float opacity) {
-        public float[] argb() {
-            float[] argb = Colors.decomposeRGBA(color);
-            argb[0] = this.opacity;
-            return argb;
-        }
-    }
-
     protected int getColorAtMapPixel(Level level, BlockColors blockColors, MutableBlockPos blockPos, int x, int z) {
         int color = 0;
         float[] argb = new float[4];
-        Queue<TransparentBlock> transparentBlocks = new LinkedList<TransparentBlock>();
+        Queue<BlockColor> transparentBlocks = new LinkedList<BlockColor>();
 
         for (int y = level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z);
                 y > level.getMinBuildHeight();
@@ -126,37 +111,43 @@ public class BlockColorCollector extends ClientOnlyCollector<BlockColorMD> {
                 continue;
             }
 
-            color = getColorAtPos(level, blockColors, state, blockPos);
+            // // TODO: For debugger reasons:
+            // Block thisBlockType = state.getBlock();
+            // String thisBlockName = state.getBlock().getDescriptionId();
 
-            if (color <= 0) {
+            BlockColor processedBlock = new BlockColor(state, level, blockPos, blockColors, transparentBlocks.isEmpty());
+
+            // TODO: See if this inequality is the cause of the transparency bug
+            if (processedBlock.totalColor <= 0) {
                 continue;
             }
 
-            TransparencyState transparency = canSeeThroughPos(state, level, blockPos);
-
-            if (transparency == TransparencyState.SEMI_TRANSPARENT) {
-                transparentBlocks.add(new TransparentBlock(color, Colors.OPACITY_HIGH));
-                continue;
-            } else if (transparency == TransparencyState.QUITE_TRANSPARENT) {
-                transparentBlocks.add(new TransparentBlock(color, Colors.OPACITY_LOW));
+            if (processedBlock.getTransparencyState() != TransparencyState.OPAQUE) {
+                transparentBlocks.add(processedBlock);
                 continue;
             }
 
-            // Hasn't met any of the conditions to continue checking the blocks under it, so break
+            // Hasn't met any of the conditions to continue checking the blocks under it, so finalise and break
+            color = processedBlock.totalColor;
             break;
         }
 
         if (transparentBlocks.size() > 0) {
             int depth = transparentBlocks.size();
             argb = transparentBlocks.poll().argb();
-            argb[0] = Math.max(0.5f, argb[0]); // Top layer must be minimum this colour as it should be the easiest to see
+
+            // Top layer must be minimum this colour as it should be the easiest to see.
+            // Represents extra sunlight reflecting off the surface
+            argb[0] = Math.max(0.5f, argb[0]);
 
             while (transparentBlocks.size() > 0) {
-                TransparentBlock transparentBlock = transparentBlocks.poll();
+                BlockColor transparentBlock = transparentBlocks.poll();
                 argb = Colors.filterARGB(argb, transparentBlock.argb(), depth);
             }
 
+            // The shade on the solid block at the bottom of the ocean
             color = Colors.recomposeRGBA(Colors.filterARGB(new float[] {0,0,0,0}, Colors.decomposeRGBA(color), depth));
+
             int finalColor = Colors.recomposeRGBA(argb);
             color = Colors.interpolate(
                 color, 0, 
@@ -166,5 +157,59 @@ public class BlockColorCollector extends ClientOnlyCollector<BlockColorMD> {
         }
 
         return color;
+    }
+
+    public static class BlockColor extends Transparency.TransparentBlock {
+        protected final int totalColor;
+
+        private BlockColor(BlockState state, Level level, BlockPos pos, BlockColors blockColors, boolean isSurfaceBlock) {
+            super(state, level, pos);
+
+            // // TODO: Temporarily here for debugger
+            // var tmp = state.getBlock();
+
+            // Get and mix the colours based on the appropriate mixing scheme
+            if (colorMix == ColorMixState.BLOCK) {
+                // Normal block conditions
+                this.totalColor = getColorAtPos(level, blockColors, state, pos);
+
+            } else if (colorMix == ColorMixState.FLUID) {
+                // Just a fluid
+                this.totalColor = getColorAtPos(level, blockColors, state, pos);
+
+            } else if (colorMix == ColorMixState.FLUIDLOGGED) {
+                // Fluidlogged block
+                int blockColor = getColorAtPos(level, blockColors, state, pos);
+
+                BlockState equivalentFluidBlock = state.getFluidState().createLegacyBlock();
+                int fluidColor = getColorAtPos(level, blockColors, equivalentFluidBlock, pos);
+
+                float[] blockArgb = argb(blockColor, blockTransparencyLevel.opacity);
+                float[] fluidArgb = argb(fluidColor, fluidTransparencyLevel.opacity);
+
+                if (isSurfaceBlock) {
+                    // Baseline opacity so thin fluids can still be seen
+                    // Represents extra sunlight reflecting off the surface
+                    fluidArgb[0] = Math.max(0.5f, fluidArgb[0]);
+                }
+
+                float[] totalArgb = Colors.filterARGB(fluidArgb, blockArgb, 0);
+                this.totalColor = Colors.recomposeRGBA(totalArgb) & 0x00FFFFFF;
+
+            } else {
+                // Zero opacity
+                this.totalColor = 0x00000000;
+            }
+        }
+
+        public float[] argb() {
+            return argb(totalColor, this.totalTransparencyLevel.opacity);
+        }
+
+        protected float[] argb(int color, float opacity) {
+            float[] argb = Colors.decomposeRGBA(color);
+            argb[0] = opacity;
+            return argb;
+        }
     }
 }

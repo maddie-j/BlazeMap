@@ -4,6 +4,8 @@ import com.eerussianguy.blazemap.api.BlazeMapReferences;
 import com.eerussianguy.blazemap.api.builtin.TerrainSlopeMD;
 import com.eerussianguy.blazemap.api.pipeline.Collector;
 import com.eerussianguy.blazemap.util.Colors;
+import com.eerussianguy.blazemap.util.Transparency;
+import com.eerussianguy.blazemap.util.Transparency.TransparencyState;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -52,12 +54,13 @@ public class TerrainSlopeCollector extends Collector<TerrainSlopeMD> {
         // When the method is gone, can replace with whatever Heightmap.Types.MOTION_BLOCKING swaps to.
         while (lowestHeight > level.getMinBuildHeight()
                 && (
-                    (canSeeThroughPos(state, level, blockPos) == TransparencyState.QUITE_TRANSPARENT)
+                    (new Transparency.TransparentBlock(state, level, blockPos).getTransparencyState() == TransparencyState.QUITE_TRANSPARENT)
                     || !(state.blocksMotion() || !state.getFluidState().isEmpty())
                     )
                ) {
-            if (canSeeThroughPos(state, level, blockPos) == TransparencyState.QUITE_TRANSPARENT) {
-                transparency = transparency * (1 - Colors.OPACITY_LOW);
+            // TODO: Make this check more efficient (don't create object again)
+            if (new Transparency.TransparentBlock(state, level, blockPos).getTransparencyState() == TransparencyState.QUITE_TRANSPARENT) {
+                transparency = transparency * (1 - Transparency.OPACITY_LOW);
             }
 
             lowestHeight--;
@@ -80,7 +83,7 @@ public class TerrainSlopeCollector extends Collector<TerrainSlopeMD> {
         // When the method is gone, can replace with whatever Heightmap.Types.MOTION_BLOCKING swaps to.
         while (y > level.getMinBuildHeight()
             && (
-                (canSeeThroughPos(state, level, blockPos) == TransparencyState.QUITE_TRANSPARENT)
+                (new Transparency.TransparentBlock(state, level, blockPos).getTransparencyState() == TransparencyState.QUITE_TRANSPARENT)
                 || !(state.blocksMotion() || !state.getFluidState().isEmpty())
                 )
            ) {

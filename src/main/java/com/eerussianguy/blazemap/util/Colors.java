@@ -12,9 +12,6 @@ public class Colors {
     public static final int LABEL_COLOR = 0xFF404040;
     public static final int WIDGET_BACKGROUND = 0xA0000000;
 
-    public static final float OPACITY_LOW = 0.1875f; // 3/16ths
-    public static final float OPACITY_HIGH = 0.85f;
-
     protected static final HashMap<Integer, Float> darknessPointCache = new HashMap<Integer, Float>();
 
     public static int layerBlend(int bottom, int top) {
