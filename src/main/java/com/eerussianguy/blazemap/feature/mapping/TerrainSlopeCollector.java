@@ -3,9 +3,10 @@ package com.eerussianguy.blazemap.feature.mapping;
 import com.eerussianguy.blazemap.api.BlazeMapReferences;
 import com.eerussianguy.blazemap.api.builtin.TerrainSlopeMD;
 import com.eerussianguy.blazemap.api.pipeline.Collector;
-import com.eerussianguy.blazemap.util.Colors;
 import com.eerussianguy.blazemap.util.Transparency;
+import com.eerussianguy.blazemap.util.Transparency.CompositionState;
 import com.eerussianguy.blazemap.util.Transparency.TransparencyState;
+import com.eerussianguy.blazemap.util.Transparency.BlockComposition;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -49,22 +50,22 @@ public class TerrainSlopeCollector extends Collector<TerrainSlopeMD> {
         }
 
         BlockState state = level.getBlockState(blockPos);
+        BlockComposition blockComposition = Transparency.getBlockComposition(state, level, blockPos);
 
-        // blocksMotion() may be deprecated, but is directly taken from Heightmap.Types.MOTION_BLOCKING.
-        // When the method is gone, can replace with whatever Heightmap.Types.MOTION_BLOCKING swaps to.
         while (lowestHeight > level.getMinBuildHeight()
                 && (
-                    (new Transparency.TransparentBlock(state, level, blockPos).getTransparencyState() == TransparencyState.QUITE_TRANSPARENT)
-                    || !(state.blocksMotion() || !state.getFluidState().isEmpty())
+                    TransparencyState.isAtLeastAsTransparentAs(
+                        blockComposition.getTransparencyState(),
+                        TransparencyState.QUITE_TRANSPARENT
+                    )
+                    || blockComposition.getBlockCompositionState() == CompositionState.NON_SOLID_BLOCK
                     )
                ) {
-            // TODO: Make this check more efficient (don't create object again)
-            if (new Transparency.TransparentBlock(state, level, blockPos).getTransparencyState() == TransparencyState.QUITE_TRANSPARENT) {
-                transparency = transparency * (1 - Transparency.OPACITY_LOW);
-            }
+            transparency = transparency * blockComposition.getTransparencyState().transparency;
 
             lowestHeight--;
             state = level.getBlockState(blockPos.move(Direction.DOWN));
+            blockComposition = Transparency.getBlockComposition(state, level, blockPos);
         }
 
         // Like with the BlockColor, the minimum opacity/max transparency should be 0.75/0.25
@@ -78,17 +79,20 @@ public class TerrainSlopeCollector extends Collector<TerrainSlopeMD> {
 
         MutableBlockPos blockPos = new MutableBlockPos(x, y, z);
         BlockState state = level.getBlockState(blockPos);
+        BlockComposition blockComposition = Transparency.getBlockComposition(state, level, blockPos);
 
-        // blocksMotion() may be deprecated, but is directly taken from Heightmap.Types.MOTION_BLOCKING.
-        // When the method is gone, can replace with whatever Heightmap.Types.MOTION_BLOCKING swaps to.
         while (y > level.getMinBuildHeight()
             && (
-                (new Transparency.TransparentBlock(state, level, blockPos).getTransparencyState() == TransparencyState.QUITE_TRANSPARENT)
-                || !(state.blocksMotion() || !state.getFluidState().isEmpty())
+                TransparencyState.isAtLeastAsTransparentAs(
+                    blockComposition.getTransparencyState(),
+                    TransparencyState.QUITE_TRANSPARENT
+                )
+                || blockComposition.getBlockCompositionState() == CompositionState.NON_SOLID_BLOCK
                 )
            ) {
             y--;
             state = level.getBlockState(blockPos.move(Direction.DOWN));
+            blockComposition = Transparency.getBlockComposition(state, level, blockPos);
         }
 
         return y;

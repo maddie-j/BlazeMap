@@ -23,7 +23,7 @@ import com.eerussianguy.blazemap.api.pipeline.ClientOnlyCollector;
 import com.eerussianguy.blazemap.util.Colors;
 import com.eerussianguy.blazemap.util.Transparency;
 import com.eerussianguy.blazemap.util.Transparency.TransparencyState;
-import com.eerussianguy.blazemap.util.Transparency.TransparentBlock;
+import com.eerussianguy.blazemap.util.Transparency.BlockComposition;
 
 public class BlockColorCollector extends ClientOnlyCollector<BlockColorMD> {
     protected static final HashMap<Integer, Float> darknessPointCache = new HashMap<Integer, Float>();
@@ -157,18 +157,20 @@ public class BlockColorCollector extends ClientOnlyCollector<BlockColorMD> {
     }
 
     public static class BlockColor {
-        private final TransparentBlock transparentBlock;
+        private final BlockComposition blockComposition;
         protected final int totalColor;
 
         private BlockColor(BlockState state, Level level, BlockPos pos, BlockColors blockColors, boolean isSurfaceBlock) {
-            this.transparentBlock = Transparency.getBlockTransparency(state, level, pos);
+            this.blockComposition = Transparency.getBlockComposition(state, level, pos);
 
-            // // TODO: Temporarily here for debugger
-            // var blockName = state.getBlock().getName();
+            // // TODO: For debugger reasons:
+            // Block thisBlockType = state.getBlock();
+            // String thisBlockName = state.getBlock().getDescriptionId();
 
             // Get and mix the colours based on the appropriate mixing scheme
-            switch (transparentBlock.colorMix) {
+            switch (blockComposition.compositionState) {
                 case BLOCK:
+                case NON_SOLID_BLOCK:
                     // Normal block conditions
                     this.totalColor = getColorAtPos(level, blockColors, state, pos);
                     break;
@@ -185,8 +187,8 @@ public class BlockColorCollector extends ClientOnlyCollector<BlockColorMD> {
                     BlockState equivalentFluidBlock = state.getFluidState().createLegacyBlock();
                     int fluidColor = getColorAtPos(level, blockColors, equivalentFluidBlock, pos);
 
-                    float[] blockArgb = argb(blockColor, transparentBlock.blockTransparencyLevel.opacity);
-                    float[] fluidArgb = argb(fluidColor, transparentBlock.fluidTransparencyLevel.opacity);
+                    float[] blockArgb = argb(blockColor, blockComposition.blockTransparencyLevel.opacity);
+                    float[] fluidArgb = argb(fluidColor, blockComposition.fluidTransparencyLevel.opacity);
 
                     if (isSurfaceBlock) {
                         // Baseline opacity so thin fluids can still be seen
@@ -205,7 +207,7 @@ public class BlockColorCollector extends ClientOnlyCollector<BlockColorMD> {
         }
 
         public float[] argb() {
-            return argb(totalColor, transparentBlock.totalTransparencyLevel.opacity);
+            return argb(totalColor, blockComposition.totalTransparencyLevel.opacity);
         }
 
         protected float[] argb(int color, float opacity) {
@@ -215,7 +217,7 @@ public class BlockColorCollector extends ClientOnlyCollector<BlockColorMD> {
         }
 
         public TransparencyState getTransparencyState() {
-            return transparentBlock.getTransparencyState();
+            return blockComposition.getTransparencyState();
         }
     }
 }

@@ -13,8 +13,7 @@ public class AerialViewMapType extends MapType {
             Helpers.identifier("textures/map_icons/map_aerial.png"),
 
             BlazeMapReferences.Layers.BLOCK_COLOR,
-            BlazeMapReferences.Layers.TERRAIN_SLOPE,
-            BlazeMapReferences.Layers.TRANSPARENT_COLOR
+            BlazeMapReferences.Layers.TERRAIN_SLOPE
         );
     }
 }

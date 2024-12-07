@@ -49,7 +49,6 @@ public class BlazeMapFeaturesClient {
         BlazeMapAPI.LAYERS.register(new TerrainSlopeLayer());
         BlazeMapAPI.LAYERS.register(new WaterLevelLayer());
         BlazeMapAPI.LAYERS.register(new TerrainIsolinesLayer());
-        BlazeMapAPI.LAYERS.register(new TransparentColorLayer());
         BlazeMapAPI.LAYERS.register(new BlockColorLayer());
         BlazeMapAPI.LAYERS.register(new NetherLayer());
 

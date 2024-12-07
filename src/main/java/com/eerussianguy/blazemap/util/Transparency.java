@@ -54,7 +54,7 @@ public class Transparency {
     private static final Set<TagKey<Block>> transparentBlockTags = initialiseTransparentBlockSet(false);
     private static final Set<TagKey<Block>> quiteTransparentBlockTags = initialiseTransparentBlockSet(true);
 
-    private static final HashMap<BlockState, TransparentBlock> transparentBlocks = new HashMap<>();
+    private static final HashMap<BlockState, BlockComposition> knownBlocks = new HashMap<>();
 
     public enum TransparencyState {
         AIR(0f),
@@ -63,10 +63,15 @@ public class Transparency {
         OPAQUE(1f),
         ;
 
+        /** The value used for RGB calculations.
+         * 0 = fully see through, 1 = fully light blocking */
         public final float opacity;
+        /** The inverse of opacity (here only as syntactic sugar) */
+        public final float transparency;
 
         private TransparencyState(float opacity) {
             this.opacity = opacity;
+            this.transparency = 1 - opacity;
         }
 
         public static TransparencyState max(TransparencyState t1, TransparencyState t2) {
@@ -78,10 +83,15 @@ public class Transparency {
             if (t1.opacity < t2.opacity) return t1;
             return t2;
         }
+
+        public static boolean isAtLeastAsTransparentAs(TransparencyState t1, TransparencyState t2) {
+            return t1.opacity <= t2.opacity;
+        }
     }
 
-    public enum ColorMixState {
+    public enum CompositionState {
         BLOCK,
+        NON_SOLID_BLOCK,
         FLUIDLOGGED,
         FLUID,
         AIR,
@@ -206,11 +216,11 @@ public class Transparency {
         return false;
     }
 
-    public static TransparentBlock getBlockTransparency(BlockState state, Level level, BlockPos pos) {
+    public static BlockComposition getBlockComposition(BlockState state, Level level, BlockPos pos) {
         // The Level and BlockPos shouldn't actually matter to the final result
         // but are required by Mojang to get the BlockState's shape
-        return transparentBlocks.computeIfAbsent(state, (s) -> {
-            return new TransparentBlock(s, level, pos);
+        return knownBlocks.computeIfAbsent(state, (s) -> {
+            return new BlockComposition(s, level, pos);
         });
     }
 
@@ -236,23 +246,25 @@ public class Transparency {
     public static void addQuiteTransparentBlockTag(TagKey<Block> block) { quiteTransparentBlockTags.add(block); };
 
 
-    public static class TransparentBlock {
+    public static class BlockComposition {
         public final TransparencyState totalTransparencyLevel;
         public final TransparencyState blockTransparencyLevel;
         public final TransparencyState fluidTransparencyLevel;
-        public final ColorMixState colorMix;
+        public final CompositionState compositionState;
 
-        public TransparentBlock(BlockState state, Level level, BlockPos pos) {
-            // Short circuit on air block. 
-            if (state.isAir()) {
-                throw new IllegalArgumentException(
-                    "Air blocks should be ignored. Don't waste time and memory on storing the transparency of air blocks."
-                );
-            }
-
+        public BlockComposition(BlockState state, Level level, BlockPos pos) {
             // // TODO: For debugger reasons:
             // Block thisBlockType = state.getBlock();
             // String thisBlockName = state.getBlock().getDescriptionId();
+
+            // Short circuit on air block.
+            if (state.isAir()) {
+                this.blockTransparencyLevel = TransparencyState.AIR;
+                this.fluidTransparencyLevel = TransparencyState.AIR;
+                this.totalTransparencyLevel = TransparencyState.AIR;
+                this.compositionState = CompositionState.AIR;
+                return;
+            }
 
             // Get shape of block to know what it occludes
             VoxelShape blockShape = state.getOcclusionShape(level, pos);
@@ -286,23 +298,23 @@ public class Transparency {
             // Find overall transparency state based on block shape
             if (isBlockEmpty) {
                 // Block contains only fluid
-                this.colorMix = ColorMixState.FLUID;
+                this.compositionState = CompositionState.FLUID;
                 this.totalTransparencyLevel = fluidTransparencyLevel;
 
             } else if (Block.isFaceFull(blockShape, Direction.UP)) {
                 // Normal block transparency rules
-                this.colorMix = ColorMixState.BLOCK;
+                this.compositionState = CompositionState.BLOCK;
                 this.totalTransparencyLevel = blockTransparencyLevel;
     
             } else if (Block.isFaceFull(blockShape, Direction.DOWN)) {
                 if (fluidTransparencyLevel == TransparencyState.AIR) {
                     // Normal block transparency rules
-                    this.colorMix = ColorMixState.BLOCK;
+                    this.compositionState = CompositionState.BLOCK;
                     this.totalTransparencyLevel = blockTransparencyLevel;
 
                 } else {
                     // Filter block color through fluid colour based on fluid transparency rules.
-                    this.colorMix = ColorMixState.FLUIDLOGGED;
+                    this.compositionState = CompositionState.FLUIDLOGGED;
     
                     // Total opacity based on highest opacity between fluid and solid.
                     this.totalTransparencyLevel = TransparencyState.max(blockTransparencyLevel, fluidTransparencyLevel);
@@ -314,12 +326,12 @@ public class Transparency {
                 if (fluidTransparencyLevel == TransparencyState.AIR) {
                     // Normal block transparency rules, but can be at most semi-transparent due to
                     // light traveling through the gaps
-                    this.colorMix = ColorMixState.BLOCK;
+                    this.compositionState = CompositionState.NON_SOLID_BLOCK;
                     this.totalTransparencyLevel = TransparencyState.min(blockTransparencyLevel, TransparencyState.SEMI_TRANSPARENT);
 
                 } else {
                     // Filter block color through fluid colour based on fluid transparency rules.
-                    this.colorMix = ColorMixState.FLUIDLOGGED;
+                    this.compositionState = CompositionState.FLUIDLOGGED;
         
                     // Total opacity based on fluid opacity.
                     // Can only cross "quite transparent" threshold if block also quite transparent
@@ -333,7 +345,7 @@ public class Transparency {
         }
 
         public TransparencyState getTransparencyState() { return totalTransparencyLevel; }
-        public ColorMixState getColorMixState() { return colorMix; }
+        public CompositionState getBlockCompositionState() { return compositionState; }
     }
 
 }
