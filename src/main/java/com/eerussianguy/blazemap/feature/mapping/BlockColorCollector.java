@@ -41,12 +41,12 @@ public class BlockColorCollector extends ClientOnlyCollector<BlockColorMD> {
         final BlockColors blockColors = Minecraft.getInstance().getBlockColors();
         final MutableBlockPos blockPos = new MutableBlockPos();
 
-        for(int x = 0; x < 16; x++) {
-            for(int z = 0; z < 16; z++) {
+        for(int z = 0; z < 16; z++) {
+            for(int x = 0; x < 16; x++) {
                 int color = getColorAtMapPixel(level, blockColors, blockPos, minX + x, minZ + z);
 
                 if(color > 0) {
-                    colors[x][z] = color;
+                    colors[z][x] = color;
                 }
             }
         }
@@ -170,7 +170,7 @@ public class BlockColorCollector extends ClientOnlyCollector<BlockColorMD> {
             // Get and mix the colours based on the appropriate mixing scheme
             switch (blockComposition.compositionState) {
                 case BLOCK:
-                case NON_SOLID_BLOCK:
+                case NON_FULL_BLOCK:
                     // Normal block conditions
                     this.totalColor = getColorAtPos(level, blockColors, state, pos);
                     break;
@@ -180,7 +180,8 @@ public class BlockColorCollector extends ClientOnlyCollector<BlockColorMD> {
                     this.totalColor = getColorAtPos(level, blockColors, state, pos);
                     break;
 
-                case FLUIDLOGGED:
+                case FLUIDLOGGED_BLOCK:
+                case FLUIDLOGGED_NON_FULL:
                     // Fluidlogged block
                     int blockColor = getColorAtPos(level, blockColors, state, pos);
 

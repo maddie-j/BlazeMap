@@ -28,9 +28,9 @@ public class BlockColorSerializer implements DataType<BlockColorMD> {
     public void serialize(MinecraftStreams.Output stream, BlockColorMD datum) throws IOException {
         stream.writeKey(datum.getID());
 
-        for(int x = 0; x < 16; x++) {
-            for(int z = 0; z < 16; z++) {
-                stream.writeInt(datum.colors[x][z]);
+        for(int z = 0; z < 16; z++) {
+            for(int x = 0; x < 16; x++) {
+                stream.writeInt(datum.colors[z][x]);
             }
         }
     }
@@ -40,9 +40,9 @@ public class BlockColorSerializer implements DataType<BlockColorMD> {
         BlazeRegistry.Key<DataType<MasterDatum>> id = stream.readKey(BlazeMapAPI.MASTER_DATA);
         int[][] colors = new int[16][16];
 
-        for(int x = 0; x < 16; x++) {
-            for(int z = 0; z < 16; z++) {
-                colors[x][z] = stream.readInt();
+        for(int z = 0; z < 16; z++) {
+            for(int x = 0; x < 16; x++) {
+                colors[z][x] = stream.readInt();
             }
         }
 

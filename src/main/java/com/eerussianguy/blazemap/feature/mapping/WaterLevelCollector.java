@@ -22,14 +22,14 @@ public class WaterLevelCollector extends Collector<WaterLevelMD> {
 
         final int[][] water = new int[16][16];
 
-        for(int x = 0; x < 16; x++) {
-            for(int z = 0; z < 16; z++) {
+        for(int z = 0; z < 16; z++) {
+            for(int x = 0; x < 16; x++) {
                 int depth = 0, height = level.getHeight(Heightmap.Types.MOTION_BLOCKING, minX + x, minZ + z) - 1;
                 while(isWater(level, minX + x, height - depth, minZ + z)) {
                     depth++;
                     if(height - depth < level.getMinBuildHeight()) break;
                 }
-                water[x][z] = depth;
+                water[z][x] = depth;
             }
         }
 

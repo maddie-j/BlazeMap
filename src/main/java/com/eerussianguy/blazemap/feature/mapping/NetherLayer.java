@@ -57,7 +57,7 @@ public class NetherLayer extends Layer {
         float up = 1.0F / ((float) terrain.maxY - terrain.sea);
 
         foreachPixel(resolution, (x, z) -> {
-            int h = ArrayAggregator.avg(relevantData(resolution, x, z, terrain.heightmap));
+            int h = ArrayAggregator.avg(relevantData(resolution, x, z, terrain.heightmapTerrain));
             int height = h - terrain.sea;
             int depth = terrain.sea - h;
             float point = h == terrain.sea ? 0 : h < terrain.sea ? down * (depth) : up * (height);

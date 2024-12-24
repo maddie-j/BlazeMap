@@ -43,7 +43,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
  */
 public class Transparency {
     public static final float OPACITY_LOW = 0.1875f; // 3/16ths
-    public static final float OPACITY_HIGH = 0.85f;
+    public static final float OPACITY_HIGH = 0.875f; // 7/8ths
 
     private static final Set<Class<?>> transparentClasses = initialiseTransparentClassSet(false);
     private static final Set<Class<?>> quiteTransparentClasses = initialiseTransparentClassSet(true);
@@ -90,11 +90,12 @@ public class Transparency {
     }
 
     public enum CompositionState {
-        BLOCK,
-        NON_SOLID_BLOCK,
-        FLUIDLOGGED,
-        FLUID,
-        AIR,
+        BLOCK,                  // Eg: Stone, Slab (looks solid from the sky)
+        NON_FULL_BLOCK,         // Eg: Torch, Iron Bar, Door
+        FLUIDLOGGED_BLOCK,      // Eg: Waterlogged Enchanting Table
+        FLUIDLOGGED_NON_FULL,   // Eg: Waterlogged Seagrass
+        FLUID,                  // Eg: Water, Lava
+        AIR,                    // Should only represent air blocks
     }
 
     private static final Set<Class<?>> initialiseTransparentClassSet (boolean isQuiteTransparent) {
@@ -314,7 +315,7 @@ public class Transparency {
 
                 } else {
                     // Filter block color through fluid colour based on fluid transparency rules.
-                    this.compositionState = CompositionState.FLUIDLOGGED;
+                    this.compositionState = CompositionState.FLUIDLOGGED_BLOCK;
     
                     // Total opacity based on highest opacity between fluid and solid.
                     this.totalTransparencyLevel = TransparencyState.max(blockTransparencyLevel, fluidTransparencyLevel);
@@ -326,12 +327,12 @@ public class Transparency {
                 if (fluidTransparencyLevel == TransparencyState.AIR) {
                     // Normal block transparency rules, but can be at most semi-transparent due to
                     // light traveling through the gaps
-                    this.compositionState = CompositionState.NON_SOLID_BLOCK;
+                    this.compositionState = CompositionState.NON_FULL_BLOCK;
                     this.totalTransparencyLevel = TransparencyState.min(blockTransparencyLevel, TransparencyState.SEMI_TRANSPARENT);
 
                 } else {
                     // Filter block color through fluid colour based on fluid transparency rules.
-                    this.compositionState = CompositionState.FLUIDLOGGED;
+                    this.compositionState = CompositionState.FLUIDLOGGED_NON_FULL;
         
                     // Total opacity based on fluid opacity.
                     // Can only cross "quite transparent" threshold if block also quite transparent
