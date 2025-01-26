@@ -27,6 +27,7 @@ public class TerrainSlopeCollector extends Collector<TerrainSlopeMD> {
     // For when a one-off BlockPos is needed, to prevent creating more new objects than necessary
     // ThreadLocal to prevent accidental "cross-contamination"
     private static ThreadLocal<MutableBlockPos> miscReusablePos = ThreadLocal.withInitial(() -> new MutableBlockPos(0, 0, 0));
+    private static float OPACITY_MIN = 0.25f;
 
     @Override
     public TerrainSlopeMD collect(Level level, int minX, int minZ, int maxX, int maxZ) {
@@ -58,6 +59,7 @@ public class TerrainSlopeCollector extends Collector<TerrainSlopeMD> {
         int highestHeight = height;
 
         blockPos.set(x, height, z);
+        boolean isTransparent = false;
         float transparency = 1;
 
         BlockState state = level.getBlockState(blockPos);
@@ -73,6 +75,7 @@ public class TerrainSlopeCollector extends Collector<TerrainSlopeMD> {
                 || blockComposition.getBlockCompositionState() == CompositionState.NON_FULL_BLOCK
                 )
         ) {
+            isTransparent = true;
             transparency = transparency * blockComposition.getTransparencyState().transparency;
 
             height--;
@@ -80,12 +83,7 @@ public class TerrainSlopeCollector extends Collector<TerrainSlopeMD> {
             blockComposition = Transparency.getBlockComposition(state, level, blockPos);
         }
 
-        // Like with the BlockColor, the minimum opacity/max transparency should be 0.75/0.25
-        // float opacity = Math.max(0.75f, 1 - transparency);
-        // float opacity = Math.max(0.5f, 1 - transparency);
-        // float opacity = Math.max(0.25f, 1 - transparency);
-        float opacity = Math.max(Transparency.OPACITY_LOW, 1 - transparency);
-        // float opacity = 1 - transparency;
+        float opacity = isTransparent ? 1 - transparency : 1;
 
         return new Height(highestHeight, height, opacity);
     }
@@ -105,14 +103,7 @@ public class TerrainSlopeCollector extends Collector<TerrainSlopeMD> {
             for(int x = 0; x < 16; x++) {
                 int xOffset = x + 2;
                 int zOffset = z + 2;
-                float baseSlope = getSlopeGradient(
-                    lowestHeightmap,
-                    lowestHeightmap,
-                    null,
-                    level,
-                    x, z,
-                    minX, minZ
-                );
+
                 float topSlope = getSlopeGradient(
                     highestHeightmap,
                     highestHeightmap,
@@ -123,38 +114,37 @@ public class TerrainSlopeCollector extends Collector<TerrainSlopeMD> {
                 );
 
                 if (highestHeightmap[zOffset][xOffset] != lowestHeightmap[zOffset][xOffset]) {
-                    // There's transparent blocks between the opaque surface and the sky
+                    float baseSlope = getSlopeGradient(
+                        lowestHeightmap,
+                        lowestHeightmap,
+                        null,
+                        level,
+                        x, z,
+                        minX, minZ
+                    );
+
                     int depth = highestHeightmap[zOffset][xOffset] - lowestHeightmap[zOffset][xOffset];
 
                     // Note: 1/(16^2) = 0.00390625
-                    float point = Math.max(1 - 0.00390625f * (depth * depth), 0); // * 0.5f;
+                    float point = Math.max(1 - 0.00390625f * (depth * depth), 0);
 
-                    // baseSlope = baseSlope > 0 ?
-                    //     Math.min(Math.min(baseSlope * opacityMap[zOffset][xOffset], point), 0.25f) : // shadow
-                    //     Math.max(Math.max(baseSlope * opacityMap[zOffset][xOffset], -(point * point)), -0.3125f); // sunlight
-
+                    // Direct attenuation from transparent object above
+                    baseSlope = baseSlope * (1 - Math.max(opacityMap[zOffset][xOffset], OPACITY_MIN));
+                    // Extra attenuation from light scatter within transparent blocks
                     baseSlope = baseSlope > 0 ?
-                        baseSlope : // shadow
-                        baseSlope * (1 - opacityMap[zOffset][xOffset]); // sunlight
+                        Math.min(Math.min(baseSlope, point), 0.25f) : // shadow
+                        Math.max(Math.max(baseSlope, -(point * point)), -0.3125f); // sunlight (Note: -0.3125 = -5/16)
 
-                    // baseSlope = baseSlope > 0 ?
-                    //     Math.min(baseSlope, point) : // shadow
-                    //     Math.max(baseSlope, -(point * point)) * (1 - opacityMap[zOffset][xOffset]); // sunlight
+                    // Sunlight and shadows on a transparent surface aren't as strong as on an opaque one
+                    topSlope = topSlope * Math.max(opacityMap[zOffset][xOffset], OPACITY_MIN);
 
-                    // baseSlope = baseSlope > 0 ?
-                    //     Math.min(baseSlope * opacityMap[zOffset][xOffset], point) : // shadow
-                    //     Math.max(baseSlope * opacityMap[zOffset][xOffset], -(point * point)); // sunlight
+                    // Combine the two cases
+                    slopemap[z][x] = baseSlope + topSlope;
 
-                    // baseSlope = baseSlope > 0 ?
-                    //     Math.min(baseSlope, point) * opacityMap[zOffset][xOffset] : // shadow
-                    //     Math.max(baseSlope, -(point * point)) * opacityMap[zOffset][xOffset]; // sunlight
+                } else {
+                    slopemap[z][x] = topSlope;
                 }
-                // float tmp = Math.max(opacityMap[zOffset][xOffset], 0.75f);
 
-                // slopemap[z][x] = baseSlope * (Math.min(1 - opacityMap[zOffset][xOffset], 0.25f))
-                //                 + topSlope * Math.max(opacityMap[zOffset][xOffset], 0.75f);
-                slopemap[z][x] = baseSlope * (1 - opacityMap[zOffset][xOffset])
-                                + topSlope * opacityMap[zOffset][xOffset];
             }
         }
 
@@ -207,7 +197,7 @@ public class TerrainSlopeCollector extends Collector<TerrainSlopeMD> {
                         // Shadows are weighted more heavily than sunlight
                         nearSlopeTotal += 4 * nearSlope * (
                             opacityMap != null ?
-                                opacityMap[zOffset + dz][xOffset + dx] :
+                                Math.max(opacityMap[zOffset + dz][xOffset + dx], OPACITY_MIN) :
                                 1
                         );
                         nearSlopeCount += 4 - (0.5 * nearSlopeCount);
@@ -231,7 +221,7 @@ public class TerrainSlopeCollector extends Collector<TerrainSlopeMD> {
                         // Shadows are weighted more heavily than sunlight
                         farSlopeTotal += 4 * farSlope * (
                             opacityMap != null ?
-                                opacityMap[zOffset + dz][xOffset + dx] :
+                                Math.max(opacityMap[zOffset + dz][xOffset + dx], OPACITY_MIN) :
                                 1
                         );
                         farSlopeCount += 4 - (0.5 * farSlopeCount);
