@@ -22,6 +22,7 @@ import com.eerussianguy.blazemap.api.event.ComponentOrderingEvent.OverlayOrderin
 import com.eerussianguy.blazemap.api.event.MapMenuSetupEvent;
 import com.eerussianguy.blazemap.api.maps.Overlay;
 import com.eerussianguy.blazemap.config.BlazeMapConfig;
+import com.eerussianguy.blazemap.config.ServerConfig;
 import com.eerussianguy.blazemap.engine.render.MapRenderer;
 import com.eerussianguy.blazemap.feature.mapping.*;
 import com.eerussianguy.blazemap.feature.maps.*;
@@ -31,6 +32,7 @@ import com.eerussianguy.blazemap.feature.waypoints.*;
 import com.eerussianguy.blazemap.feature.waypoints.service.WaypointService;
 import com.eerussianguy.blazemap.feature.waypoints.service.WaypointServiceClient;
 import com.eerussianguy.blazemap.feature.waypoints.service.WaypointServiceServer;
+import com.eerussianguy.blazemap.lib.Helpers;
 import com.mojang.blaze3d.platform.InputConstants;
 
 public class BlazeMapFeaturesClient {
@@ -134,7 +136,11 @@ public class BlazeMapFeaturesClient {
                 MinimapOptionsGui.open();
             }
             else {
-                WorldMapGui.open();
+                if(BlazeMapConfig.SERVER.mapItemRequirement.canPlayerAccessMap(Helpers.getPlayer(), ServerConfig.MapAccess.READ_STATIC)) {
+                    WorldMapGui.open();
+                } else {
+                    Helpers.getPlayer().displayClientMessage(Helpers.translate("blazemap.gui.worldmap.denied"), true);
+                }
             }
         }
         if(KEY_WAYPOINTS.isDown() && hasWaypoints()) {
