@@ -17,6 +17,7 @@ import net.minecraftforge.eventbus.api.IEventBus;
 
 import com.eerussianguy.blazemap.api.markers.Waypoint;
 import com.eerussianguy.blazemap.config.BlazeMapConfig;
+import com.eerussianguy.blazemap.config.ServerConfig;
 import com.eerussianguy.blazemap.feature.waypoints.service.WaypointServiceClient;
 import com.eerussianguy.blazemap.lib.Colors;
 import com.eerussianguy.blazemap.lib.Helpers;
@@ -36,6 +37,8 @@ public class WaypointRenderer {
     }
 
     public static void onLevelStageRender(RenderLevelStageEvent event) {
+        if(!BlazeMapConfig.SERVER.mapItemRequirement.canPlayerAccessMap(Helpers.getPlayer(), ServerConfig.MapAccess.READ_LIVE)) return;
+
         // Forge Doc:
         // Use this to render custom effects into the world, such as custom entity-like objects or special rendering effects. Called within a fabulous graphics target. Happens after entities render.
         // ForgeRenderTypes.TRANSLUCENT_ON_PARTICLES_TARGET

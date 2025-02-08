@@ -133,31 +133,38 @@ public class BlazeMapFeaturesClient {
     private static void mapKeybinds(InputEvent.KeyInputEvent evt) {
         if(KEY_MAPS.isDown()) {
             if(Screen.hasShiftDown()) {
-                MinimapOptionsGui.open();
+                executeOrNotify(ServerConfig.MapAccess.READ_LIVE, MinimapOptionsGui::open);
             }
             else {
-                if(BlazeMapConfig.SERVER.mapItemRequirement.canPlayerAccessMap(Helpers.getPlayer(), ServerConfig.MapAccess.READ_STATIC)) {
-                    WorldMapGui.open();
-                } else {
-                    Helpers.getPlayer().displayClientMessage(Helpers.translate("blazemap.gui.worldmap.denied"), true);
-                }
+                executeOrNotify(ServerConfig.MapAccess.READ_STATIC, WorldMapGui::open);
             }
         }
         if(KEY_WAYPOINTS.isDown() && hasWaypoints()) {
             if(Screen.hasShiftDown()) {
-                new WaypointManagerFragment().open();
+                executeOrNotify(ServerConfig.MapAccess.READ_LIVE, () -> new WaypointManagerFragment().open());
             }
             else {
-                new WaypointEditorFragment().open();
+                executeOrNotify(ServerConfig.MapAccess.READ_LIVE, () -> new WaypointEditorFragment().open());
             }
         }
         if(KEY_ZOOM.isDown()) {
-            if(Screen.hasShiftDown()) {
-                MinimapRenderer.INSTANCE.synchronizer.zoomOut();
+            if(BlazeMapConfig.SERVER.mapItemRequirement.canPlayerAccessMap(Helpers.getPlayer(), ServerConfig.MapAccess.READ_LIVE)) {
+                if(Screen.hasShiftDown()) {
+                    MinimapRenderer.INSTANCE.synchronizer.zoomOut();
+                }
+                else {
+                    MinimapRenderer.INSTANCE.synchronizer.zoomIn();
+                }
             }
-            else {
-                MinimapRenderer.INSTANCE.synchronizer.zoomIn();
-            }
+        }
+    }
+
+    /** If the player has enough map access level, executes provided action. Otherwise notifies the player. */
+    private static void executeOrNotify(ServerConfig.MapAccess access, Runnable action) {
+        if(BlazeMapConfig.SERVER.mapItemRequirement.canPlayerAccessMap(Helpers.getPlayer(), access)) {
+            action.run();
+        } else {
+            Helpers.getPlayer().displayClientMessage(Helpers.translate("blazemap.gui.notification.denied"), true);
         }
     }
 

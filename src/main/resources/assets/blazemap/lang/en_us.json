@@ -18,6 +18,8 @@
   "blazemap.key.waypoints": "Create Waypoint / [Shift] Manage Waypoints",
   "blazemap.key.zoom": "Zoom In / [Shift] Zoom Out",
 
+  "blazemap.gui.notification.denied": "You don't have the required map in your inventory",
+
   "blazemap.gui.minimap_options.title": "Minimap Options",
   "blazemap.gui.minimap_options.map_types": "Active Map",
   "blazemap.gui.minimap_options.layers": "Optional Layers",
@@ -33,7 +35,6 @@
   "blazemap.gui.common.layer.disabled": "Layer disabled by Server",
   "blazemap.gui.common.overlay.disabled": "Overlay disabled by Server",
 
-  "blazemap.gui.worldmap.denied": "You don't have the required map in your inventory",
   "blazemap.gui.worldmap.menu.no_options": "No Options",
   "blazemap.gui.worldmap.menu.waypoint": "Waypoints",
   "blazemap.gui.worldmap.menu.waypoint.new": "Create New Waypoint",
