@@ -7,7 +7,7 @@ public class LocalState {
     public static final LocalState ROOT = new RootLocalState();
 
     private LocalState parent;
-    private InheritedBoolean visibility = InheritedBoolean.INHERITED;
+    private InheritedBoolean visibility = InheritedBoolean.DEFAULT;
 
     public LocalState() {
         this(ROOT);

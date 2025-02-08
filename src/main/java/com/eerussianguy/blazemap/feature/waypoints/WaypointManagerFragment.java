@@ -23,6 +23,7 @@ import com.eerussianguy.blazemap.lib.gui.components.Label;
 import com.eerussianguy.blazemap.lib.gui.components.Tree;
 import com.eerussianguy.blazemap.lib.gui.components.TextButton;
 import com.eerussianguy.blazemap.lib.gui.components.selection.DropdownList;
+import com.eerussianguy.blazemap.lib.gui.components.selection.SelectionModelSingle;
 import com.eerussianguy.blazemap.lib.gui.core.ContainerAnchor;
 import com.eerussianguy.blazemap.lib.gui.core.EdgeReference;
 import com.eerussianguy.blazemap.lib.gui.core.TooltipService;
@@ -52,11 +53,17 @@ public class WaypointManagerFragment extends BaseFragment {
             y = 15;
         }
 
+        DropdownList<ResourceKey<Level>> dimensions = new DropdownList<>(volatiles, d -> new Label(d.location().toString()));
+        var model = dimensions.getModel();
+        model.setElements(RegistryHelper.getAllDimensions());
+        model.setSelected(Helpers.levelOrThrow().dimension());
+        container.add(dimensions.setSize(MANAGER_UI_WIDTH, 14), 0, y);
+
         IconTabs tabs = new IconTabs().setSize(MANAGER_UI_WIDTH, 20).setLine(5, 5);
-        container.add(tabs, 0, y);
+        container.add(tabs, 0, y += 17);
 
         for(var pool : client.getPools()) {
-            var pc = new PoolContainer(volatiles, container::dismiss, pool);
+            var pc = new PoolContainer(model, container::dismiss, pool);
             container.add(pc, 0, y + 25);
             tabs.add(pc);
         }
@@ -64,13 +71,13 @@ public class WaypointManagerFragment extends BaseFragment {
 
     // =================================================================================================================
     private static class PoolContainer extends FragmentContainer implements IconTabs.TabComponent {
-        private final VolatileContainer volatiles;
+        private final SelectionModelSingle<ResourceKey<Level>> dimensions;
         private final List<Component> tooltip = new ArrayList<>();
         private final WaypointPool pool;
 
-        private PoolContainer(VolatileContainer volatiles, Runnable dismiss, WaypointPool pool) {
+        private PoolContainer(SelectionModelSingle<ResourceKey<Level>> dimensions, Runnable dismiss, WaypointPool pool) {
             super(dismiss, 0);
-            this.volatiles = volatiles;
+            this.dimensions = dimensions;
             this.pool = pool;
             tooltip.add(pool.getName());
             tooltip.add(new TextComponent("Blaze Map").withStyle(ChatFormatting.BLUE)); // TODO: temporary
@@ -80,15 +87,9 @@ public class WaypointManagerFragment extends BaseFragment {
         private void construct() {
             clear();
 
-            DropdownList<ResourceKey<Level>> dimensions = new DropdownList<>(volatiles, d -> new Label(d.location().toString()));
-            var model = dimensions.getModel();
-            model.setElements(RegistryHelper.getAllDimensions());
-            model.setSelected(Helpers.levelOrThrow().dimension());
-            add(dimensions.setSize(MANAGER_UI_WIDTH, 14), 0, 0);
-
             Tree tree = new Tree().setSize(MANAGER_UI_WIDTH, 160);
-            add(tree, 0, 17);
-            model.addSelectionListener(dimension -> {
+            add(tree, 0, 0);
+            dimensions.addSelectionListener(dimension -> {
                 tree.clearItems();
                 var groups = pool.getGroups(dimension);
                 for(var group : groups) {
@@ -96,12 +97,12 @@ public class WaypointManagerFragment extends BaseFragment {
                 }
             });
 
-            var addButton = new TextButton(new TextComponent("Add Group"), button -> { // TODO: temporary
+            var addButton = new TextButton(Helpers.translate("blazemap.gui.button.add_waypoint"), button -> {
                 pool.getGroups(Helpers.levelOrThrow().dimension()).add(WaypointGroup.make(WaypointChannelLocal.GROUP_DEFAULT));
                 PoolContainer.this.construct();
             }).setSize(MANAGER_UI_WIDTH / 2 - 1, 14);
             addButton.setEnabled(pool.canUserCreate());
-            add(addButton, 0, 179);
+            add(addButton, 0, 162);
         }
 
         @Override
@@ -215,7 +216,7 @@ public class WaypointManagerFragment extends BaseFragment {
         @Override
         protected void renderTooltip(PoseStack stack, int mouseX, int mouseY, TooltipService service) {
             if(group.management.canCreateChild && add.mouseIntercepts(mouseX, mouseY)) {
-                service.drawTooltip(stack, mouseX, mouseY, new TextComponent("Add Waypoint")); // TODO: temporary
+                service.drawTooltip(stack, mouseX, mouseY, Helpers.translate("blazemap.gui.button.add_waypoint"));
                 return;
             }
             super.renderTooltip(stack, mouseX, mouseY, service);
@@ -252,7 +253,7 @@ public class WaypointManagerFragment extends BaseFragment {
         @Override
         protected void renderTooltip(PoseStack stack, int mouseX, int mouseY, TooltipService service) {
             if(group.management.canEditChild && edit.mouseIntercepts(mouseX, mouseY)) {
-                service.drawTooltip(stack, mouseX, mouseY, new TextComponent("Edit Waypoint")); // TODO: temporary
+                service.drawTooltip(stack, mouseX, mouseY, Helpers.translate("blazemap.gui.button.edit_waypoint"));
                 return;
             }
             super.renderTooltip(stack, mouseX, mouseY, service);
@@ -317,7 +318,7 @@ public class WaypointManagerFragment extends BaseFragment {
             ResourceLocation texture = switch(state.getVisibility()) {
                 case TRUE -> ON_OVERRIDE;
                 case FALSE -> OFF_OVERRIDE;
-                case INHERITED -> state.isVisible() ? ON_INHERITED : OFF_INHERITED;
+                case DEFAULT -> state.isVisible() ? ON_INHERITED : OFF_INHERITED;
             };
             RenderHelper.drawTexturedQuad(texture, Colors.NO_TINT, stack, visibility.getPositionX(), visibility.getPositionY(), visibility.getWidth(), visibility.getHeight());
             if(isDeletable()) {
@@ -332,19 +333,19 @@ public class WaypointManagerFragment extends BaseFragment {
         protected void renderTooltip(PoseStack stack, int mouseX, int mouseY, TooltipService service) {
             if(visibility.mouseIntercepts(mouseX, mouseY)) {
                 InheritedBoolean visible = state.getVisibility();
-                var tooltip = new TextComponent(switch(visible) { // TODO: temporary
-                    case TRUE -> "Visibility: Show";
-                    case FALSE -> "Visibility: Hide";
-                    case INHERITED -> "Visibility: Inherit";
+                var tooltip = Helpers.translate(switch(visible) {
+                    case TRUE -> "blazemap.gui.button.visibility_show";
+                    case FALSE -> "blazemap.gui.button.visibility_hide";
+                    case DEFAULT -> "blazemap.gui.button.visibility_default";
                 });
                 service.drawTooltip(stack, mouseX, mouseY, tooltip);
                 return;
             }
 
             if(isDeletable() && delete.mouseIntercepts(mouseX, mouseY)) {
-                var tooltip = new TextComponent("Delete"); // TODO: temporary
+                var tooltip = Helpers.translate("blazemap.gui.button.delete");
                 if(!Screen.hasShiftDown()) {
-                    service.drawTooltip(stack, mouseX, mouseY, tooltip, new TextComponent("Hold [Shift] to confirm").withStyle(ChatFormatting.YELLOW)); // TODO: temporary
+                    service.drawTooltip(stack, mouseX, mouseY, tooltip, Helpers.translate("blazemap.gui.tooltip.confirm_delete").withStyle(ChatFormatting.YELLOW));
                 } else {
                     service.drawTooltip(stack, mouseX, mouseY, tooltip.withStyle(ChatFormatting.RED));
                 }

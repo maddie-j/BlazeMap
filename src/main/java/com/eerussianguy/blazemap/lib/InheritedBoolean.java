@@ -3,7 +3,7 @@ package com.eerussianguy.blazemap.lib;
 import java.util.function.BooleanSupplier;
 
 public enum InheritedBoolean {
-    TRUE, FALSE, INHERITED;
+    TRUE, FALSE, DEFAULT;
 
     public static InheritedBoolean of(boolean value) {
         return value ? TRUE : FALSE;
@@ -13,7 +13,7 @@ public enum InheritedBoolean {
         return switch(this) {
             case TRUE -> true;
             case FALSE -> false;
-            case INHERITED -> parent.getAsBoolean();
+            case DEFAULT -> parent.getAsBoolean();
         };
     }
 
@@ -21,11 +21,11 @@ public enum InheritedBoolean {
         return switch(this) {
             case TRUE -> true;
             case FALSE -> false;
-            case INHERITED -> throw new IllegalStateException("INHERITED has no direct value");
+            case DEFAULT -> throw new IllegalStateException("DEFAULT has no direct value");
         };
     }
 
     public boolean isDirect() {
-        return this != INHERITED;
+        return this != DEFAULT;
     }
 }
