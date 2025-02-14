@@ -36,6 +36,17 @@ public class Colors {
         return Math.max(0, Math.min(255, a + b));
     }
 
+    public static int multiplyRGB(int a, int b) {
+        int _r = multiplyChannel((a >> 16) & 0xFF, (b >> 16) & 0xFF);
+        int _g = multiplyChannel((a >>  8) & 0xFF, (b >>  8) & 0xFF);
+        int _b = multiplyChannel(a & 0xFF, b & 0xFF);
+        return (_r << 16) | (_g << 8) | _b;
+    }
+
+    public static int multiplyChannel(float a, float b) {
+        return 0xFF & (int) (a * b / 255F);
+    }
+
     public static int setAlpha(int color, byte alpha) {
         return (alpha << 24) | (color & 0x00FFFFFF);
     }
