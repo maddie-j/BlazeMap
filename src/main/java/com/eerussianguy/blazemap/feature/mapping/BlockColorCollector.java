@@ -1,10 +1,13 @@
 package com.eerussianguy.blazemap.feature.mapping;
 
+import java.util.function.IntFunction;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.color.block.BlockColors;
 import net.minecraft.client.renderer.block.BlockModelShaper;
 import net.minecraft.core.BlockPos.MutableBlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
@@ -40,23 +43,25 @@ public class BlockColorCollector extends ClientOnlyCollector<BlockColorMD> {
                 int y = level.getHeight(Heightmap.Types.MOTION_BLOCKING, minX + x, minZ + z);
 
                 int color = 0;
-                while(color == 0 && y > level.getMinBuildHeight()) {
+                do {
                     colorPOS.set(x + minX, y, z + minZ);
                     final BlockState state = level.getBlockState(colorPOS);
 
                     // Skip air
-                    if (state.isAir()) {
-                        y--;
-                        continue;
+                    if (state.isAir()) continue;
+
+                    // Get color from texture
+                    if(state.is(BlockTags.FLOWERS)) {
+                        color = getBestTexturePixel(level, state, null, this::avoidGreen);
+                    } else {
+                        color = getAverageTextureColor(level, state, Direction.UP);
                     }
 
-                    // Get color from top texture
-                    color = getTopFaceColor(level, state);
-                    if((color & TINTED_FLAG) == TINTED_FLAG) {
+                    if((color & Colors.ALPHA) == TINTED_FLAG) {
                         color = Colors.multiplyRGB(color, blockColors.getColor(state, level, colorPOS, 0));
                     }
 
-                    // Fallback 1: get block color
+                    // Fallback 1: get block tint
                     if(color == 0) {
                         color = blockColors.getColor(state, level, colorPOS, 0);
                     }
@@ -68,9 +73,7 @@ public class BlockColorCollector extends ClientOnlyCollector<BlockColorMD> {
                             color = mapColor.col;
                         }
                     }
-
-                    y--;
-                }
+                } while (color == 0 && --y > level.getMinBuildHeight());
 
                 if(color != 0 && color != -1) {
                     colors[x][z] = color;
@@ -80,11 +83,11 @@ public class BlockColorCollector extends ClientOnlyCollector<BlockColorMD> {
         return new BlockColorMD(colors);
     }
 
-    private int getTopFaceColor(Level level, BlockState state) {
+    private int getAverageTextureColor(Level level, BlockState state, Direction direction) {
         return colors.computeIfAbsent(state, $ -> {
             var mc = Minecraft.getInstance();
             var model = mc.getModelManager().getModel(BlockModelShaper.stateToModelLocation(state));
-            var quads = model.getQuads(state, Direction.UP, level.getRandom(), EmptyModelData.INSTANCE);
+            var quads = model.getQuads(state, direction, level.getRandom(), EmptyModelData.INSTANCE);
 
             int flag = 0;
             int r = 0, g = 0, b = 0, total = 0;
@@ -117,5 +120,40 @@ public class BlockColorCollector extends ClientOnlyCollector<BlockColorMD> {
 
             return flag | (r << 16) | (g << 8) | b;
         });
+    }
+
+    private int getBestTexturePixel(Level level, BlockState state, Direction direction, IntFunction<Integer> fitness) {
+        return colors.computeIfAbsent(state, $ -> {
+            var mc = Minecraft.getInstance();
+            var model = mc.getModelManager().getModel(BlockModelShaper.stateToModelLocation(state));
+            var quads = model.getQuads(state, direction, level.getRandom(), EmptyModelData.INSTANCE);
+            int pixel = 0, best = Integer.MIN_VALUE;
+
+            for(var quad : quads) {
+                var texture = quad.getSprite();
+                int w = texture.getWidth(), h = texture.getHeight();
+                for(int x = 0; x < w; x++) {
+                    for(int y = 0; y < h; y++) {
+                        int color = Colors.abgr(texture.getPixelRGBA(0, x, y));
+                        int score = fitness.apply(color);
+                        if(score > best) {
+                            best = score;
+                            pixel = color;
+                        }
+                    }
+                }
+            }
+
+            return pixel;
+        });
+    }
+
+    private int avoidGreen(int pixel) {
+        var channels = Colors.decomposeRGBA(pixel);
+        float a = channels[0];
+        int r = (int) (channels[1] * 1000);
+        int g = (int) (channels[2] * 1000);
+        int b = (int) (channels[3] * 1000);
+        return (int) (a * (r + 1000-g + b));
     }
 }
