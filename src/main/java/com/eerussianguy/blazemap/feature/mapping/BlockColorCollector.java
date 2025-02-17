@@ -51,7 +51,7 @@ public class BlockColorCollector extends ClientOnlyCollector<BlockColorMD> {
             }
         }
 
-        return new BlockColorMD(BlazeMapReferences.MasterData.BLOCK_COLOR, colors);
+        return new BlockColorMD(colors);
     }
 
     /**

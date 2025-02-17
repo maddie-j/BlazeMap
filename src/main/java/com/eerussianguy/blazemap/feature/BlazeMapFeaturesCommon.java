@@ -9,7 +9,7 @@ public class BlazeMapFeaturesCommon {
         BlazeMapAPI.MASTER_DATA.register(new TerrainHeightSerializer(BlazeMapReferences.MasterData.TERRAIN_HEIGHT));
         BlazeMapAPI.MASTER_DATA.register(new TerrainSlopeSerializer());
         BlazeMapAPI.MASTER_DATA.register(new WaterLevelSerializer());
-        BlazeMapAPI.MASTER_DATA.register(new BlockColorSerializer(BlazeMapReferences.MasterData.BLOCK_COLOR));
+        BlazeMapAPI.MASTER_DATA.register(new BlockColorSerializer());
         BlazeMapAPI.MASTER_DATA.register(new TerrainHeightSerializer(BlazeMapReferences.MasterData.NETHER));
 
         BlazeMapAPI.COLLECTORS.register(new TerrainHeightCollector());

@@ -17,7 +17,7 @@ public class TerrainIsolinesLayer extends Layer {
     // FIXME: use a double pass to save resources on relevant data aggregation
     private static int height(TerrainHeightMD terrain, WaterLevelMD water, TileResolution resolution, int x, int z, int def) {
         if(x < 0 || z < 0 || x >= resolution.chunkWidth || z >= resolution.chunkWidth) return def;
-        return ArrayAggregator.avg(relevantData(resolution, x, z, terrain.heightmapTerrain)) - ArrayAggregator.avg(relevantData(resolution, x, z, water.level));
+        return ArrayAggregator.avg(relevantData(resolution, x, z, terrain.heightmap)) - ArrayAggregator.avg(relevantData(resolution, x, z, water.level));
     }
 
     private static int delta(int h, int n, int p) {
@@ -46,7 +46,7 @@ public class TerrainIsolinesLayer extends Layer {
 
         foreachPixel(resolution, (x, z) -> {
             int p = 0;
-            int h = ArrayAggregator.avg(relevantData(resolution, x, z, terrain.heightmapTerrain));
+            int h = ArrayAggregator.avg(relevantData(resolution, x, z, terrain.heightmap));
             int d = ArrayAggregator.avg(relevantData(resolution, x, z, water.level));
             h -= d;
 

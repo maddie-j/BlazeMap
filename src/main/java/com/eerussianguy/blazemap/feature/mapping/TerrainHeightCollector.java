@@ -76,27 +76,10 @@ public class TerrainHeightCollector extends Collector<TerrainHeightMD> {
 
 
                 /** 
-                 * Resetting. Now collect base terrain height.
+                 * Now collect base terrain height.
                  * This ignores non-terrain blocks such as trees and other plantlife
                  */
-                // height = heightmapSurface[z][x];
-                boolean foundLeaves = false;
-        
-                while(isLeavesOrReplaceable(level, blockX, height, blockZ)) {
-                    height--;
-                    if(height <= minBuildHeight) break;
-                    foundLeaves = true;
-                }
-        
-                while(foundLeaves && isSkippableAfterLeaves(level, blockX, height, blockZ)) {
-                    height--;
-                    if(height <= minBuildHeight) break;
-                }
-                
-                while (!isSolid(level, blockX, height, blockZ)) {
-                    height--;
-                    if(height <= minBuildHeight) break;
-                }
+                height = findSurfaceBelowVegetation(level, blockX, blockZ, false);
 
                 // Note: The + 1 here is for legacy reasons. Will make it somebody else's decision
                 // wether or not to remove it and possibly make other visual adjustments instead.

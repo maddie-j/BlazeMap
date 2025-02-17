@@ -6,6 +6,7 @@ import net.minecraft.tags.FluidTags;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.MangroveRootsBlock;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.material.Fluids;
 
 import com.eerussianguy.blazemap.api.BlazeRegistry.Key;
@@ -53,8 +54,62 @@ public abstract class Collector<T extends MasterDatum> implements RegistryEntry,
         return state.getFluidState().is(FluidTags.WATER);
     }
 
+    protected static boolean isFluid(Level level, int x, int y, int z) {
+        BlockState state = level.getBlockState(POS.set(x, y, z));
+        return !state.getFluidState().isEmpty();
+    }
+
     protected static boolean isLeavesOrReplaceable(Level level, int x, int y, int z) {
         BlockState state = level.getBlockState(POS.set(x, y, z));
         return state.isAir() || state.is(BlockTags.LEAVES) || state.getBlock() instanceof MangroveRootsBlock || state.canBeReplaced() || state.canBeReplaced(Fluids.WATER) ;
+    }
+
+    protected static boolean isSkippableAfterLeaves(Level level, int x, int y, int z) {
+        BlockState state = level.getBlockState(POS.set(x, y, z));
+        return state.is(BlockTags.LOGS) || isLeavesOrReplaceable(level, x, y, z);
+    }
+
+    protected static int findSurfaceBelowVegetation(Level level, int x, int z, boolean stopAtFluid) {
+        final int minBuildHeight = level.getMinBuildHeight();
+
+        int height = level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z) - 1;
+        boolean foundLeaves = false;
+
+        if (stopAtFluid) {
+            while(isLeavesOrReplaceable(level, x, height, z) && !isFluid(level, x, height, z)) {
+                height--;
+                if(height <= minBuildHeight) break;
+                foundLeaves = true;
+            }
+
+            while(foundLeaves && isSkippableAfterLeaves(level, x, height, z) && !isFluid(level, x, height, z)) {
+                height--;
+                if(height <= minBuildHeight) break;
+            }
+
+            while (!isSolid(level, x, height, z) && !isFluid(level, x, height, z)) {
+                height--;
+                if(height <= minBuildHeight) break;
+            }
+
+        } else {
+            while(isLeavesOrReplaceable(level, x, height, z)) {
+                height--;
+                if(height <= minBuildHeight) break;
+                foundLeaves = true;
+            }
+
+            while(foundLeaves && isSkippableAfterLeaves(level, x, height, z)) {
+                height--;
+                if(height <= minBuildHeight) break;
+            }
+
+            while (!isSolid(level, x, height, z)) {
+                height--;
+                if(height <= minBuildHeight) break;
+            }
+        }
+
+        return height;
     }
 }
