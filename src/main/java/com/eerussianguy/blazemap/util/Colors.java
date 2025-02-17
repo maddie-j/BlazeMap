@@ -1,9 +1,8 @@
 package com.eerussianguy.blazemap.util;
 
 import java.awt.*;
-import java.util.HashMap;
-
-import com.eerussianguy.blazemap.BlazeMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class Colors {
     public static final int NO_TINT = -1;
@@ -12,7 +11,7 @@ public class Colors {
     public static final int LABEL_COLOR = 0xFF404040;
     public static final int WIDGET_BACKGROUND = 0xA0000000;
 
-    protected static final HashMap<Integer, Float> darknessPointCache = new HashMap<Integer, Float>();
+    protected static final Map<Integer, Float> darknessPointCache = new ConcurrentHashMap<Integer, Float>();
 
     public static int layerBlend(int bottom, int top) {
         if((top & 0xFF000000) == 0xFF000000) return top; // top is opaque, use top
@@ -46,7 +45,7 @@ public class Colors {
 
 
     /**
-     * This is a value to represent the lessening light that passes through semitransparent objects.
+     * This is a value to represent the lessening light as it attenuates while passing through semitransparent objects.
      * Will always be in the range [0 - 0.96667] (aka 0 to almost but not quite 1).
      * Higher is more shadowed.
      * 
@@ -54,16 +53,7 @@ public class Colors {
      */
     public static float getDarknessPoint(int depth) {
         return darknessPointCache.computeIfAbsent(depth, (size) -> {
-            // return Math.min(2.90f, 0.125f * (float)Math.log(size + 1)) / 3;
-
-            // return Math.min(0.00390625f * (depth * depth), 0.9667f);
-            // return Math.min(0.015625f * (depth), 0.9667f);
-
             return Math.min(2.90f, 0.375f * (float)Math.log(size + 1)) / 3;
-
-            // 0.1875 == 3/16
-
-            // return Math.max(0f, Math.min(0.99f, (double)Math.log(Math.log(size)) * 0.5f));
         });
     }
 
@@ -73,7 +63,7 @@ public class Colors {
      * 
      * @param top The higher block colour values
      * @param bottom The lower block colour values
-     * @param depth How many transparent blocks are below this one
+     * @param depth How many transparent blocks are above this one
      * @return
      */
     public static float[] filterARGB(float[] top, float[] bottom, int depth) {
@@ -81,7 +71,6 @@ public class Colors {
         float point = getDarknessPoint(depth);
 
         for (int i = 1; i < 4; i++) {
-
             // Attenuate from depth
             bottom[i] -= bottom[i] * (point);
 

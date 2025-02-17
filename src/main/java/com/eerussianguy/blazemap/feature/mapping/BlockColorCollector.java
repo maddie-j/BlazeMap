@@ -41,9 +41,13 @@ public class BlockColorCollector extends ClientOnlyCollector<BlockColorMD> {
         final BlockColors blockColors = Minecraft.getInstance().getBlockColors();
         final MutableBlockPos blockPos = new MutableBlockPos();
 
+        // Reusable arrays
+        float[] arr1 = new float[4];
+        float[] arr2 = new float[4];
+
         for(int z = 0; z < 16; z++) {
             for(int x = 0; x < 16; x++) {
-                int color = getColorAtMapPixel(level, blockColors, blockPos, minX + x, minZ + z);
+                int color = getColorAtMapPixel(level, blockColors, blockPos, minX + x, minZ + z, arr1, arr2);
 
                 if(color > 0) {
                     colors[z][x] = color;
@@ -57,9 +61,6 @@ public class BlockColorCollector extends ClientOnlyCollector<BlockColorMD> {
     /**
      * These blocks don't return accurate colours using the other methods,
      * so unfortunately need to set a colour manually
-     * 
-     * @param state
-     * @return
      */
     protected static int handleSpecialCases(BlockState state) {
         var block = state.getBlock();
@@ -93,11 +94,11 @@ public class BlockColorCollector extends ClientOnlyCollector<BlockColorMD> {
         return color;
     }
 
-    protected int getColorAtMapPixel(Level level, BlockColors blockColors, MutableBlockPos blockPos, int x, int z) {
+    protected int getColorAtMapPixel(Level level, BlockColors blockColors, MutableBlockPos blockPos, int x, int z, float[] arr1, float[] arr2) {
         int color = 0;
-        float[] argb = new float[4];
+        float[] argb = arr1;
         // Extra arrays to reuse the same memory addresses for GC's sake
-        float[] spareArray = new float[4];
+        float[] spareArray = arr2;
         float[] tmpArray;
 
         Queue<BlockColor> transparentBlocks = new LinkedList<BlockColor>();
@@ -131,7 +132,7 @@ public class BlockColorCollector extends ClientOnlyCollector<BlockColorMD> {
 
         if (transparentBlocks.size() > 0) {
             // TODO: Forgot to change depth while iterating through block column.
-            // Will require retuning colours after fixing.
+            // Will require re-tuning colours after fixing.
             int depth = transparentBlocks.size();
             argb = transparentBlocks.poll().argb(argb);
 

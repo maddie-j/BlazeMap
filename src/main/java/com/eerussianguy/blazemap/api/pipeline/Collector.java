@@ -45,8 +45,7 @@ public abstract class Collector<T extends MasterDatum> implements RegistryEntry,
 
     protected static boolean isSolid(Level level, int x, int y, int z) {
         BlockState state = level.getBlockState(POS.set(x, y, z));
-        CompositionState composition = Transparency.getBlockComposition(state, level, POS).getBlockCompositionState();
-        return !state.canBeReplaced() && (composition == CompositionState.BLOCK || composition == CompositionState.FLUIDLOGGED_BLOCK);
+        return isSolid(level, state);
     }
     protected static boolean isSolid(Level level, BlockState state) {
         CompositionState composition = Transparency.getBlockComposition(state, level, POS).getBlockCompositionState();
@@ -55,7 +54,7 @@ public abstract class Collector<T extends MasterDatum> implements RegistryEntry,
 
     protected static boolean isWater(Level level, int x, int y, int z) {
         BlockState state = level.getBlockState(POS.set(x, y, z));
-        return state.getFluidState().is(FluidTags.WATER);
+        return isWater(state);
     }
     protected static boolean isWater(BlockState state) {
         return state.getFluidState().is(FluidTags.WATER);
@@ -63,7 +62,7 @@ public abstract class Collector<T extends MasterDatum> implements RegistryEntry,
 
     protected static boolean isFluid(Level level, int x, int y, int z) {
         BlockState state = level.getBlockState(POS.set(x, y, z));
-        return !state.getFluidState().isEmpty();
+        return isFluid(state);
     }
     protected static boolean isFluid(BlockState state) {
         return !state.getFluidState().isEmpty();
@@ -71,7 +70,7 @@ public abstract class Collector<T extends MasterDatum> implements RegistryEntry,
 
     protected static boolean isLeavesOrReplaceable(Level level, int x, int y, int z) {
         BlockState state = level.getBlockState(POS.set(x, y, z));
-        return state.isAir() || state.is(BlockTags.LEAVES) || state.getBlock() instanceof MangroveRootsBlock || state.canBeReplaced() || state.canBeReplaced(Fluids.WATER) ;
+        return isLeavesOrReplaceable(state);
     }
     protected static boolean isLeavesOrReplaceable(BlockState state) {
         return state.isAir() || state.is(BlockTags.LEAVES) || state.getBlock() instanceof MangroveRootsBlock || state.canBeReplaced() || state.canBeReplaced(Fluids.WATER) ;
@@ -79,7 +78,7 @@ public abstract class Collector<T extends MasterDatum> implements RegistryEntry,
 
     protected static boolean isSkippableAfterLeaves(Level level, int x, int y, int z) {
         BlockState state = level.getBlockState(POS.set(x, y, z));
-        return state.is(BlockTags.LOGS) || isLeavesOrReplaceable(state);
+        return isSkippableAfterLeaves(state);
     }
     protected static boolean isSkippableAfterLeaves(BlockState state) {
         return state.is(BlockTags.LOGS) || isLeavesOrReplaceable(state);

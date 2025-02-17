@@ -48,7 +48,7 @@ public class TerrainSlopeCollector extends Collector<TerrainSlopeMD> {
         }
 
         // The below should be possible to be moved off-thread to a Transformer later
-        final float[][] slopemap = processSlopeData(heightmap, highestHeightmap, lowestHeightmap, opacityMap, level, minX, minZ);
+        final float[][] slopemap = processSlopeData(highestHeightmap, lowestHeightmap, opacityMap, level, minX, minZ);
 
         return new TerrainSlopeMD(slopemap);
     }
@@ -90,7 +90,6 @@ public class TerrainSlopeCollector extends Collector<TerrainSlopeMD> {
 
 
     protected static float[][] processSlopeData(
-        Height[][] heightmap,
         int[][] highestHeightmap,
         int[][] lowestHeightmap,
         float[][] opacityMap,

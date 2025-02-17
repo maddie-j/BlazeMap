@@ -1,8 +1,9 @@
 package com.eerussianguy.blazemap.util;
 
-import java.util.HashMap;
+import java.util.Map;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -54,7 +55,7 @@ public class Transparency {
     private static final Set<TagKey<Block>> transparentBlockTags = initialiseTransparentBlockSet(false);
     private static final Set<TagKey<Block>> quiteTransparentBlockTags = initialiseTransparentBlockSet(true);
 
-    private static final HashMap<BlockState, BlockComposition> knownBlocks = new HashMap<>();
+    private static final Map<BlockState, BlockComposition> knownBlocks = new ConcurrentHashMap<>();
 
     public enum TransparencyState {
         AIR(0f),
@@ -254,10 +255,6 @@ public class Transparency {
         public final CompositionState compositionState;
 
         public BlockComposition(BlockState state, Level level, BlockPos pos) {
-            // // TODO: For debugger reasons:
-            // Block thisBlockType = state.getBlock();
-            // String thisBlockName = state.getBlock().getDescriptionId();
-
             // Short circuit on air block.
             if (state.isAir()) {
                 this.blockTransparencyLevel = TransparencyState.AIR;
