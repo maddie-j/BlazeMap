@@ -69,7 +69,7 @@ public class Colors {
 
 
     /**
-     * TODO: Attempt using ARGB
+     * Calculate the colour of the bottom block as seen through the top block
      * 
      * @param top The higher block colour values
      * @param bottom The lower block colour values
@@ -81,9 +81,6 @@ public class Colors {
         float point = getDarknessPoint(depth);
 
         for (int i = 1; i < 4; i++) {
-            // if (Math.random() > 0.999) {
-            //     BlazeMap.LOGGER.info("== {} {} {} {} ==", bottom[i], point, bottom[i] * (point), bottom[i] - bottom[i] * (point));
-            // }
 
             // Attenuate from depth
             bottom[i] -= bottom[i] * (point);
@@ -120,6 +117,13 @@ public class Colors {
         float g = ((color >> 8) & 0xFF) / 255f;
         float b = ((color) & 0xFF) / 255f;
         return new float[] {a, r, g, b};
+    }
+    public static float[] decomposeRGBA(int color, float[] arr) {
+        arr[0] = ((color >> 24) & 0xFF) / 255f;
+        arr[1] = ((color >> 16) & 0xFF) / 255f;
+        arr[2] = ((color >> 8) & 0xFF) / 255f;
+        arr[3] = ((color) & 0xFF) / 255f;
+        return arr;
     }
 
     public static int recomposeRGBA(float[] color) {

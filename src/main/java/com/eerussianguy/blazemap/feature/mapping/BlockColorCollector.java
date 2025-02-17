@@ -96,6 +96,10 @@ public class BlockColorCollector extends ClientOnlyCollector<BlockColorMD> {
     protected int getColorAtMapPixel(Level level, BlockColors blockColors, MutableBlockPos blockPos, int x, int z) {
         int color = 0;
         float[] argb = new float[4];
+        // Extra arrays to reuse the same memory addresses for GC's sake
+        float[] spareArray = new float[4];
+        float[] tmpArray;
+
         Queue<BlockColor> transparentBlocks = new LinkedList<BlockColor>();
 
         for (int y = level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z);
@@ -108,11 +112,7 @@ public class BlockColorCollector extends ClientOnlyCollector<BlockColorMD> {
                 continue;
             }
 
-            // // TODO: For debugger reasons:
-            // Block thisBlockType = state.getBlock();
-            // String thisBlockName = state.getBlock().getDescriptionId();
-
-            BlockColor processedBlock = new BlockColor(state, level, blockPos, blockColors, transparentBlocks.isEmpty());
+            BlockColor processedBlock = new BlockColor(state, level, blockPos, blockColors, transparentBlocks.isEmpty(), argb, spareArray);
 
             // TODO: See if this inequality is the cause of the transparency bug
             if (processedBlock.totalColor <= 0) {
@@ -130,8 +130,10 @@ public class BlockColorCollector extends ClientOnlyCollector<BlockColorMD> {
         }
 
         if (transparentBlocks.size() > 0) {
+            // TODO: Forgot to change depth while iterating through block column.
+            // Will require retuning colours after fixing.
             int depth = transparentBlocks.size();
-            argb = transparentBlocks.poll().argb();
+            argb = transparentBlocks.poll().argb(argb);
 
             // Top layer must be minimum this colour as it should be the easiest to see.
             // Represents extra sunlight reflecting off the surface
@@ -139,11 +141,13 @@ public class BlockColorCollector extends ClientOnlyCollector<BlockColorMD> {
 
             while (transparentBlocks.size() > 0) {
                 BlockColor transparentBlock = transparentBlocks.poll();
-                argb = Colors.filterARGB(argb, transparentBlock.argb(), depth);
+                tmpArray = Colors.filterARGB(argb, transparentBlock.argb(spareArray), depth);
+                spareArray = argb;
+                argb = tmpArray;
             }
 
             // The shade on the solid block at the bottom of the ocean
-            color = Colors.recomposeRGBA(Colors.filterARGB(new float[] {0,0,0,0}, Colors.decomposeRGBA(color), depth));
+            color = Colors.recomposeRGBA(Colors.filterARGB(new float[] {0,0,0,0}, Colors.decomposeRGBA(color, spareArray), depth));
 
             int finalColor = Colors.recomposeRGBA(argb);
             color = Colors.interpolate(
@@ -161,11 +165,17 @@ public class BlockColorCollector extends ClientOnlyCollector<BlockColorMD> {
         protected final int totalColor;
 
         private BlockColor(BlockState state, Level level, BlockPos pos, BlockColors blockColors, boolean isSurfaceBlock) {
+            this(state, level, pos, blockColors, isSurfaceBlock, null, null);
+        }
+
+        private BlockColor(BlockState state, Level level, BlockPos pos, BlockColors blockColors, boolean isSurfaceBlock, float[] arr1, float[] arr2) {
             this.blockComposition = Transparency.getBlockComposition(state, level, pos);
 
-            // // TODO: For debugger reasons:
-            // Block thisBlockType = state.getBlock();
-            // String thisBlockName = state.getBlock().getDescriptionId();
+            // Check if we have reusable arrays and create new ones if not
+            if (arr1 == null || arr2 == null) {
+                arr1 = new float[4];
+                arr2 = new float[4];
+            }
 
             // Get and mix the colours based on the appropriate mixing scheme
             switch (blockComposition.compositionState) {
@@ -188,8 +198,8 @@ public class BlockColorCollector extends ClientOnlyCollector<BlockColorMD> {
                     BlockState equivalentFluidBlock = state.getFluidState().createLegacyBlock();
                     int fluidColor = getColorAtPos(level, blockColors, equivalentFluidBlock, pos);
 
-                    float[] blockArgb = argb(blockColor, blockComposition.blockTransparencyLevel.opacity);
-                    float[] fluidArgb = argb(fluidColor, blockComposition.fluidTransparencyLevel.opacity);
+                    float[] blockArgb = argb(blockColor, blockComposition.blockTransparencyLevel.opacity, arr1);
+                    float[] fluidArgb = argb(fluidColor, blockComposition.fluidTransparencyLevel.opacity, arr2);
 
                     if (isSurfaceBlock) {
                         // Baseline opacity so thin fluids can still be seen
@@ -210,9 +220,17 @@ public class BlockColorCollector extends ClientOnlyCollector<BlockColorMD> {
         public float[] argb() {
             return argb(totalColor, blockComposition.totalTransparencyLevel.opacity);
         }
+        public float[] argb(float[] arr) {
+            return argb(totalColor, blockComposition.totalTransparencyLevel.opacity, arr);
+        }
 
         protected float[] argb(int color, float opacity) {
             float[] argb = Colors.decomposeRGBA(color);
+            argb[0] = opacity;
+            return argb;
+        }
+        protected float[] argb(int color, float opacity, float[] arr) {
+            float[] argb = Colors.decomposeRGBA(color, arr);
             argb[0] = opacity;
             return argb;
         }
