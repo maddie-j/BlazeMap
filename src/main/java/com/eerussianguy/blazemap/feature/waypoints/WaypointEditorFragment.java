@@ -141,7 +141,7 @@ public class WaypointEditorFragment extends BaseFragment {
 
 
         // SUBMIT ======================================================================================================
-        TextButton submit = new TextButton(Helpers.translate("blazemap.gui.waypoint_editor.save"), button -> {
+        TextButton submit = new TextButton(Helpers.translate("blazemap.gui.button.save"), button -> {
             waypoint.setName(name.get());
             waypoint.setPosition(new BlockPos(posX.get(), posY.get(), posZ.get()));
             waypoint.setDimension(dimensions.getModel().getSelected());

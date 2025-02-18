@@ -12,6 +12,7 @@ import net.minecraft.world.level.Level;
 
 import com.eerussianguy.blazemap.feature.waypoints.service.*;
 import com.eerussianguy.blazemap.feature.waypoints.ui.WaypointGroupNode;
+import com.eerussianguy.blazemap.integration.KnownMods;
 import com.eerussianguy.blazemap.lib.*;
 import com.eerussianguy.blazemap.lib.gui.components.IconTabs;
 import com.eerussianguy.blazemap.lib.gui.components.Label;
@@ -68,7 +69,7 @@ public class WaypointManagerFragment extends BaseFragment {
             this.dimensions = dimensions;
             this.pool = pool;
             tooltip.add(pool.getName());
-            tooltip.add(new TextComponent("Blaze Map").withStyle(ChatFormatting.BLUE)); // TODO: temporary
+            tooltip.add(new TextComponent(KnownMods.getOwnerName(pool.id)).withStyle(ChatFormatting.BLUE));
             construct();
         }
 
@@ -85,7 +86,7 @@ public class WaypointManagerFragment extends BaseFragment {
                 }
             });
 
-            var addButton = new TextButton(Helpers.translate("blazemap.gui.button.add_waypoint"), button -> {
+            var addButton = new TextButton(Helpers.translate("blazemap.gui.button.add_group"), button -> {
                 pool.getGroups(Helpers.levelOrThrow().dimension()).add(WaypointGroup.make(WaypointChannelLocal.GROUP_DEFAULT));
                 PoolContainer.this.construct();
             }).setSize(MANAGER_UI_WIDTH / 2 - 1, 14);
@@ -113,5 +114,4 @@ public class WaypointManagerFragment extends BaseFragment {
             return tooltip;
         }
     }
-
 }

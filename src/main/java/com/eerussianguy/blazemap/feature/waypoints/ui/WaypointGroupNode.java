@@ -6,9 +6,9 @@ import java.util.List;
 
 import net.minecraft.resources.ResourceLocation;
 
-import com.eerussianguy.blazemap.BlazeMap;
 import com.eerussianguy.blazemap.api.markers.Waypoint;
 import com.eerussianguy.blazemap.feature.waypoints.WaypointEditorFragment;
+import com.eerussianguy.blazemap.feature.waypoints.WaypointGroupEditorFragment;
 import com.eerussianguy.blazemap.feature.waypoints.service.WaypointGroup;
 import com.eerussianguy.blazemap.lib.Colors;
 import com.eerussianguy.blazemap.lib.Helpers;
@@ -20,15 +20,13 @@ import com.eerussianguy.blazemap.lib.gui.core.TooltipService;
 import com.mojang.blaze3d.vertex.PoseStack;
 
 public class WaypointGroupNode extends WaypointTreeNode {
-    private static final ResourceLocation ADD = BlazeMap.resource("textures/gui/add.png");
-
     private final WaypointGroup group;
     private final ArrayList<? extends Tree.TreeItem> children;
-    private final EdgeReference add = new EdgeReference(this, ContainerAnchor.TOP_RIGHT).setSize(8, 8).setPosition(22, 2);
+    private final EdgeReference add = new EdgeReference(this, ContainerAnchor.TOP_RIGHT).setSize(8, 8).setPosition(32, 2);
     private boolean open = true;
 
     public WaypointGroupNode(WaypointGroup group, Runnable delete) {
-        super(group.getName(), group.getState(), delete);
+        super(group.getName(), group.getState(), delete, "blazemap.gui.button.edit_group");
         this.group = group;
         this.children = new ArrayList<>(group.getAll().stream().map(this::makeChild).toList());
     }
@@ -96,6 +94,16 @@ public class WaypointGroupNode extends WaypointTreeNode {
     @Override
     protected boolean isDeletable() {
         return group.management.canDelete;
+    }
+
+    @Override
+    protected boolean isEditable() {
+        return group.management.canEdit;
+    }
+
+    @Override
+    protected boolean editNode() {
+        return new WaypointGroupEditorFragment(group).push();
     }
 
     @Override

@@ -22,8 +22,10 @@ import com.eerussianguy.blazemap.lib.gui.trait.BorderedComponent;
 import com.eerussianguy.blazemap.lib.gui.trait.ComponentSounds;
 import com.mojang.blaze3d.vertex.PoseStack;
 
-public class WaypointTreeNode extends Label implements Tree.TreeItem, BorderedComponent, ComponentSounds, GuiEventListener {
-    private static final ResourceLocation REMOVE = BlazeMap.resource("textures/gui/remove.png");
+public abstract class WaypointTreeNode extends Label implements Tree.TreeItem, BorderedComponent, ComponentSounds, GuiEventListener {
+    protected static final ResourceLocation ADD = BlazeMap.resource("textures/gui/add.png");
+    protected static final ResourceLocation REMOVE = BlazeMap.resource("textures/gui/remove.png");
+    protected static final ResourceLocation EDIT = BlazeMap.resource("textures/gui/edit.png");
     private static final ResourceLocation ON_OVERRIDE = BlazeMap.resource("textures/gui/on.png");
     private static final ResourceLocation ON_INHERITED = BlazeMap.resource("textures/gui/on_inherited.png");
     private static final ResourceLocation OFF_OVERRIDE = BlazeMap.resource("textures/gui/off.png");
@@ -31,21 +33,25 @@ public class WaypointTreeNode extends Label implements Tree.TreeItem, BorderedCo
 
     protected final EdgeReference visibility = new EdgeReference(this, ContainerAnchor.TOP_RIGHT).setSize(8, 8).setPosition(2, 2);
     protected final EdgeReference delete = new EdgeReference(this, ContainerAnchor.TOP_RIGHT).setSize(8, 8).setPosition(12, 2);
+    protected final EdgeReference edit = new EdgeReference(this, ContainerAnchor.TOP_RIGHT).setSize(8, 8).setPosition(22, 2);
     protected final LocalState state;
     protected final Runnable onDelete;
+    protected final String editTooltip;
     protected Runnable updater = () -> {};
     private boolean wasDeleted = false;
 
-    protected WaypointTreeNode(Component text, LocalState state, Runnable delete) {
+    protected WaypointTreeNode(Component text, LocalState state, Runnable delete, String editTooltip) {
         super(text);
         this.state = state;
         this.onDelete = delete;
+        this.editTooltip = editTooltip;
     }
 
-    protected WaypointTreeNode(String text, LocalState state, Runnable delete) {
+    protected WaypointTreeNode(String text, LocalState state, Runnable delete, String editTooltip) {
         super(text);
         this.state = state;
         this.onDelete = delete;
+        this.editTooltip = editTooltip;
     }
 
     @Override
@@ -58,6 +64,9 @@ public class WaypointTreeNode extends Label implements Tree.TreeItem, BorderedCo
         RenderHelper.drawTexturedQuad(texture, Colors.NO_TINT, stack, visibility.getPositionX(), visibility.getPositionY(), visibility.getWidth(), visibility.getHeight());
         if(isDeletable()) {
             RenderHelper.drawTexturedQuad(REMOVE, Screen.hasShiftDown() ? Colors.NO_TINT : Colors.DISABLED, stack, delete.getPositionX(), delete.getPositionY(), delete.getWidth(), delete.getHeight());
+        }
+        if(isEditable()) {
+            RenderHelper.drawTexturedQuad(EDIT, Colors.NO_TINT, stack, edit.getPositionX(), edit.getPositionY(), edit.getWidth(), edit.getHeight());
         }
 
         stack.translate(getHeight(), getHeight() / 2F - 4, 0);
@@ -85,10 +94,19 @@ public class WaypointTreeNode extends Label implements Tree.TreeItem, BorderedCo
             else {
                 service.drawTooltip(stack, mouseX, mouseY, tooltip.withStyle(ChatFormatting.RED));
             }
+            return;
+        }
+
+        if(isEditable() && edit.mouseIntercepts(mouseX, mouseY)) {
+            service.drawTooltip(stack, mouseX, mouseY, Helpers.translate(editTooltip));
         }
     }
 
     protected boolean isDeletable() {
+        return true;
+    }
+
+    protected boolean isEditable() {
         return true;
     }
 
@@ -126,6 +144,16 @@ public class WaypointTreeNode extends Label implements Tree.TreeItem, BorderedCo
             }
             return true;
         }
+        if(isEditable() && edit.mouseIntercepts(mouseX, mouseY)) {
+            boolean editing = editNode();
+            if(editing) {
+                playOkSound();
+            }
+            else {
+                playDeniedSound();
+            }
+            return true;
+        }
         return false;
     }
 
@@ -133,6 +161,8 @@ public class WaypointTreeNode extends Label implements Tree.TreeItem, BorderedCo
     public boolean wasDeleted() {
         return wasDeleted;
     }
+
+    protected abstract boolean editNode();
 
     @Override
     public void setUpdater(Runnable function) {
