@@ -1,7 +1,5 @@
 package com.eerussianguy.blazemap.feature.waypoints;
 
-import net.minecraft.core.BlockPos;
-
 import com.eerussianguy.blazemap.feature.waypoints.service.WaypointGroup;
 import com.eerussianguy.blazemap.lib.Helpers;
 import com.eerussianguy.blazemap.lib.ObjHolder;
