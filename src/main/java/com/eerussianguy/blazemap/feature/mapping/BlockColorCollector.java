@@ -4,11 +4,14 @@ import java.util.function.IntFunction;
 
 import java.util.Queue;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.HashMap;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.color.block.BlockColors;
 import net.minecraft.client.renderer.block.BlockModelShaper;
+import net.minecraft.client.renderer.block.model.BakedQuad;
+import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.BlockPos.MutableBlockPos;
 import net.minecraft.core.Direction;
@@ -161,7 +164,7 @@ public class BlockColorCollector extends ClientOnlyCollector<BlockColorMD> {
         if(state.is(BlockTags.FLOWERS)) {
             color = getBestTexturePixel(level, state, null, BlockColorCollector::avoidGreen);
         } else {
-            color = getAverageTextureColor(level, state, Direction.UP);
+            color = getAverageTextureColor(level, state);
         }
 
         if((color & Colors.ALPHA) == TINTED_FLAG) {
@@ -184,16 +187,22 @@ public class BlockColorCollector extends ClientOnlyCollector<BlockColorMD> {
         return color;
     }
 
-    private static int getAverageTextureColor(Level level, BlockState state, Direction direction) {
+    private static int getAverageTextureColor(Level level, BlockState state) {
         return colors.computeIfAbsent(state, $ -> {
             var mc = Minecraft.getInstance();
-            var model = mc.getModelManager().getModel(BlockModelShaper.stateToModelLocation(state));
-            var quads = model.getQuads(state, direction, level.getRandom(), EmptyModelData.INSTANCE);
+            BakedModel model = mc.getModelManager().getModel(BlockModelShaper.stateToModelLocation(state));
+            List<BakedQuad> quads = model.getQuads(state, Direction.UP, level.getRandom(), EmptyModelData.INSTANCE);
+
+            if (quads.size() == 0) {
+                // Cross-shaped blocks (and others without a top surface) don't respond to the direction right,
+                // so grabbing all faces to average out instead
+                quads = model.getQuads(state, null, level.getRandom(), EmptyModelData.INSTANCE);
+            }
 
             int flag = 0;
             int r = 0, g = 0, b = 0, total = 0;
 
-            for(var quad : quads) {
+            for(BakedQuad quad : quads) {
                 if(quad.isTinted()) {
                     flag = TINTED_FLAG;
                 }
