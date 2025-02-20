@@ -197,8 +197,10 @@ public class BlockColorCollector extends ClientOnlyCollector<BlockColorMD> {
                 if(quad.isTinted()) {
                     flag = TINTED_FLAG;
                 }
+
                 var texture = quad.getSprite();
                 int w = texture.getWidth(), h = texture.getHeight();
+
                 for(int x = 0; x < w; x++) {
                     for(int y = 0; y < h; y++) {
                         var pixel = Colors.decomposeRGBA(texture.getPixelRGBA(0, x, y));
@@ -207,7 +209,7 @@ public class BlockColorCollector extends ClientOnlyCollector<BlockColorMD> {
                         r += (255 * pixel[3] * alpha);
                         g += (255 * pixel[2] * alpha);
                         b += (255 * pixel[1] * alpha);
-                        total++;
+                        total += alpha;
                     }
                 }
             }
