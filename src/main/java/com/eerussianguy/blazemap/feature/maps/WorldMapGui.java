@@ -338,6 +338,12 @@ public class WorldMapGui extends Screen implements MapHost, FragmentHost {
             return true;
         }
 
+        if(key == GLFW.GLFW_KEY_F && Screen.hasControlDown() && search.isVisible() && !search.isFocused()) {
+            this.setFocused(search);
+            search.setFocus(true);
+            return true;
+        }
+
         if(!search.isFocused()) {
             if(key == BlazeMapFeaturesClient.KEY_MAPS.getKey().getValue()) {
                 this.onClose();
