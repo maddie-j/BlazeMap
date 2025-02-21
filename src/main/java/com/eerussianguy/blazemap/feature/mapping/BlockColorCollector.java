@@ -237,13 +237,17 @@ public class BlockColorCollector extends ClientOnlyCollector<BlockColorMD> {
     private static int getBestTexturePixel(Level level, BlockState state, Direction direction, IntFunction<Integer> fitness) {
         return colors.computeIfAbsent(state, $ -> {
             var mc = Minecraft.getInstance();
-            var model = mc.getModelManager().getModel(BlockModelShaper.stateToModelLocation(state));
-            var quads = model.getQuads(state, direction, level.getRandom(), EmptyModelData.INSTANCE);
-            int pixel = 0, best = Integer.MIN_VALUE;
+            BakedModel model = mc.getModelManager().getModel(BlockModelShaper.stateToModelLocation(state));
+            List<BakedQuad> quads = model.getQuads(state, direction, level.getRandom(), EmptyModelData.INSTANCE);
 
-            for(var quad : quads) {
+            int best = Integer.MIN_VALUE;
+            int pixel = 0;
+
+            for(BakedQuad quad : quads) {
                 var texture = quad.getSprite();
-                int w = texture.getWidth(), h = texture.getHeight();
+                int w = texture.getWidth();
+                int h = texture.getHeight();
+
                 for(int x = 0; x < w; x++) {
                     for(int y = 0; y < h; y++) {
                         int color = Colors.abgr(texture.getPixelRGBA(0, x, y));
@@ -256,7 +260,7 @@ public class BlockColorCollector extends ClientOnlyCollector<BlockColorMD> {
                 }
             }
 
-            return pixel;
+            return pixel & 0x00FFFFFF;
         });
     }
 
