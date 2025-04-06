@@ -157,7 +157,11 @@ public class ClientEngine {
         BlazeMapAsync.instance().clientChain.runOnDataThread(() -> activePipeline.redrawFromMD(pos));
     }
 
-    public static void onChunkChanged(ChunkPos pos, String source) {
+    public static void onChunkChanged(ResourceKey<Level> dim, ChunkPos pos, String source) {
+        if (activePipeline != null && activePipeline != getPipeline(dim)) {
+            switchToPipeline(dim);
+        }
+
         if(isServerSource) {
             if(activePipeline != null) {
                 activePipeline.setHot();

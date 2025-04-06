@@ -5,6 +5,8 @@ import com.eerussianguy.blazemap.engine.MDSources;
 import com.eerussianguy.blazemap.profiling.Profilers;
 import me.jellysquid.mods.sodium.client.render.chunk.ChunkRenderList;
 import me.jellysquid.mods.sodium.client.render.chunk.RenderSection;
+import net.minecraft.client.Minecraft;
+
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -18,7 +20,7 @@ public class SodiumCompatMixin {
         Profilers.Client.Mixin.SODIUM_LOAD_PROFILER.hit();
         Profilers.Client.Mixin.SODIUM_TIME_PROFILER.begin();
 
-        ClientEngine.onChunkChanged(render.getChunkPos().chunk(), MDSources.Client.SODIUM);
+        ClientEngine.onChunkChanged(Minecraft.getInstance().level.dimension(), render.getChunkPos().chunk(), MDSources.Client.SODIUM);
 
         Profilers.Client.Mixin.SODIUM_TIME_PROFILER.end();
     }

@@ -24,7 +24,7 @@ public class RenderChunkRegionMixin {
         for(RenderChunk[] rcs : renderChunks) {
             for(RenderChunk rc : rcs) {
                 ChunkPos pos = rc.wrapped.getPos();
-                ClientEngine.onChunkChanged(pos, MDSources.Client.VANILLA);
+                ClientEngine.onChunkChanged(level.dimension(), pos, MDSources.Client.VANILLA);
             }
         }
 
