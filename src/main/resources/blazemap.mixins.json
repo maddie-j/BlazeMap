@@ -3,6 +3,14 @@
   "package": "com.eerussianguy.blazemap.mixin",
   "compatibilityLevel": "JAVA_17",
   "refmap": "blazemap.refmap.json",
-  "mixins": ["ChunkHolderMixin", "ClientboundChunkLightPacketMixin", "ClientboundChunkPacketMixin", "RenderChunkRegionMixin", "SodiumCompatMixin"],
+  "mixins": [
+    "ChunkHolderMixin",
+    "ClientboundChunkLightPacketMixin",
+    "ClientboundChunkPacketMixin",
+    "RenderChunkRegionMixin",
+    "SodiumCompatMixinCombined$ChunkRenderListMixin",
+    "SodiumCompatMixinCombined$RenderSectionMixin",
+    "SodiumCompatMixinCombined$SodiumWorldRenderedMixin"
+  ],
   "minVersion": "0.8"
 }
