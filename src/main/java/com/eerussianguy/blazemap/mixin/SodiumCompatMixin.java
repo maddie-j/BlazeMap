@@ -15,10 +15,10 @@ import me.jellysquid.mods.sodium.client.render.chunk.ChunkRenderList;
 import me.jellysquid.mods.sodium.client.render.chunk.RenderSection;
 import net.minecraft.client.multiplayer.ClientLevel;
 
-public class SodiumCompatMixinCombined {
+public class SodiumCompatMixin {
     
     @Mixin(value = SodiumWorldRenderer.class, remap = false)
-    public static interface SodiumWorldRenderedMixin {
+    public static interface SodiumWorldRendererMixin {
         @Accessor("world")
         public ClientLevel getWorld();
     }
@@ -40,7 +40,7 @@ public class SodiumCompatMixinCombined {
             Profilers.Client.Mixin.SODIUM_TIME_PROFILER.begin();
 
             ClientEngine.onChunkChanged(
-                ((SodiumWorldRenderedMixin)((RenderSectionMixin)render).getWorld()).getWorld().dimension(), 
+                ((SodiumWorldRendererMixin)((RenderSectionMixin)render).getWorld()).getWorld().dimension(), 
                 render.getChunkPos().chunk(), 
                 MDSources.Client.SODIUM
             );

@@ -8,9 +8,9 @@
     "ClientboundChunkLightPacketMixin",
     "ClientboundChunkPacketMixin",
     "RenderChunkRegionMixin",
-    "SodiumCompatMixinCombined$ChunkRenderListMixin",
-    "SodiumCompatMixinCombined$RenderSectionMixin",
-    "SodiumCompatMixinCombined$SodiumWorldRenderedMixin"
+    "SodiumCompatMixin$ChunkRenderListMixin",
+    "SodiumCompatMixin$RenderSectionMixin",
+    "SodiumCompatMixin$SodiumWorldRendererMixin"
   ],
   "minVersion": "0.8"
 }
