@@ -82,7 +82,7 @@ public class ClientConfig {
                 .define("displayWaypointsOnMap", true);
             this.renderWaypointsInWorld = builder.apply("renderWaypointsInWorld")
                 .comment("Enables waypoints to be rendered in the world")
-                .define("renderWaypointsInWorld", false);
+                .define("renderWaypointsInWorld", true);
             this.deathWaypoints = builder.apply("deathWaypoints")
                 .comment("Automatically create special waypoints at the place of your death")
                 .define("deathWaypoints", true);

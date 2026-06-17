@@ -133,9 +133,6 @@ public class WaypointRenderer {
         stack.popPose();
     }
 
-    /**
-     * <a href="https://www.wolframalpha.com/input?i=quadratic+fit+calculator&assumption=%7B%22F%22%2C+%22QuadraticFitCalculator%22%2C+%22data2%22%7D+-%3E%22%7B%7B460%2C+0.0282%7D%2C+%7B7100%2C+0.108%7D%2C+%7B14375%2C+0.1253%7D%7D%22">https://www.wolframalpha.com/input?i=quadratic+fit+calculator&assumption=%7B%22F%22%2C+%22QuadraticFitCalculator%22%2C+%22data2%22%7D+-%3E%22%7B%7B460%2C+0.0282%7D%2C+%7B7100%2C+0.108%7D%2C+%7B14375%2C+0.1253%7D%7D%22</a>
-     */
     private static void renderWaypointLabel(Minecraft mc, PoseStack stack, MultiBufferSource.BufferSource buffers, Waypoint w, Vec3 pos, float alpha) {
         String name = w.getName();
         RenderType icon = RenderType.text(w.getIcon());
@@ -156,11 +153,11 @@ public class WaypointRenderer {
             Vec3 camPos = camera.getPosition();
             double dist = camPos.distanceToSqr(pos);
 
-            // TODO: Adjust this dynamically to limit scaling with distance
-            float distScale = 1f/16f;
-            // float distScale = Mth.clampedMap((float) dist, 0f, 128f * 128f, 0f, 1f);
-            // distScale = (float) ((-6.92782E-10 * distScale * distScale) + (0.0000172555 * distScale) + 0.0204091);
-            // distScale *= 4f;
+            // I have no idea how these coefficients were decided. Thank/blame EERussianguy. ~Res
+            // https://www.wolframalpha.com/input?i=quadratic+fit+calculator&assumption=%7B%22F%22%2C+%22QuadraticFitCalculator%22%2C+%22data2%22%7D+-%3E%22%7B%7B460%2C+0.0282%7D%2C+%7B7100%2C+0.108%7D%2C+%7B14375%2C+0.1253%7D%7D%22
+            float distScale = Mth.clamp((float) dist, 0f, 128f * 128f);
+            distScale = (float) ((-6.92782E-10 * distScale * distScale) + (0.0000172555 * distScale) + 0.0204091);
+            distScale *= 1.25f;
 
             stack.scale(distScale, distScale, distScale);
             stack.mulPose(Vector3f.ZP.rotationDegrees(180f));
@@ -188,7 +185,7 @@ public class WaypointRenderer {
                 // Centre icon then draw it
                 stack.translate(-width * 0.5, -height * 0.5, 0);
                 VertexConsumer iconBuffer = buffers.getBuffer(icon);
-                RenderHelper.drawQuad(iconBuffer, stack.last().pose(), width, height, w.getColor());
+                RenderHelper.drawQuad(iconBuffer, stack.last().pose(), width, height, w.getColor(), LightTexture.FULL_BRIGHT);
 
             stack.popPose();
 
@@ -312,7 +309,7 @@ public class WaypointRenderer {
         }
 
         protected static void addVertex(Matrix4f matrix, Matrix3f normal, VertexConsumer buffer, float r, float g, float b, float a, int y, float x, float z, float u, float v) {
-            buffer.vertex(matrix, x, (float)y, z).color(r, g, b, a).uv(u, v).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(15728880).normal(normal, 0.0F, 1.0F, 0.0F).endVertex();
+            buffer.vertex(matrix, x, (float)y, z).color(r, g, b, a).uv(u, v).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(LightTexture.FULL_BRIGHT).normal(normal, 0.0F, 1.0F, 0.0F).endVertex();
         }
     }
 }

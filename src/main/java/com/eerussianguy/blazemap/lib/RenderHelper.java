@@ -56,15 +56,23 @@ public class RenderHelper {
         drawQuad(vertices, matrix, w, h, color, 0F, 1F, 0F, 1F);
     }
 
+    public static void drawQuad(VertexConsumer vertices, Matrix4f matrix, float w, float h, int color, int lightTexture) {
+        drawQuad(vertices, matrix, w, h, color, 0F, 1F, 0F, 1F, lightTexture);
+    }
+
     public static void drawQuad(VertexConsumer vertices, Matrix4f matrix, float w, float h, int color, float u0, float u1, float v0, float v1) {
+        drawQuad(vertices, matrix, w, h, color, u0, u1, v0, v1, LightTexture.FULL_BRIGHT);
+    }
+
+    public static void drawQuad(VertexConsumer vertices, Matrix4f matrix, float w, float h, int color, float u0, float u1, float v0, float v1, int lightTexture) {
         float a = ((float) ((color >> 24) & 0xFF)) / 255F;
         float r = ((float) ((color >> 16) & 0xFF)) / 255F;
         float g = ((float) ((color >> 8) & 0xFF)) / 255F;
         float b = ((float) ((color) & 0xFF)) / 255F;
-        vertices.vertex(matrix, 0.0F, h, -0.01F).color(r, g, b, a).uv(u0, v1).uv2(LightTexture.FULL_BRIGHT).endVertex();
-        vertices.vertex(matrix, w, h, -0.01F).color(r, g, b, a).uv(u1, v1).uv2(LightTexture.FULL_BRIGHT).endVertex();
-        vertices.vertex(matrix, w, 0.0F, -0.01F).color(r, g, b, a).uv(u1, v0).uv2(LightTexture.FULL_BRIGHT).endVertex();
-        vertices.vertex(matrix, 0.0F, 0.0F, -0.01F).color(r, g, b, a).uv(u0, v0).uv2(LightTexture.FULL_BRIGHT).endVertex();
+        vertices.vertex(matrix, 0.0F, h, -0.01F).color(r, g, b, a).uv(u0, v1).uv2(lightTexture).endVertex();
+        vertices.vertex(matrix, w, h, -0.01F).color(r, g, b, a).uv(u1, v1).uv2(lightTexture).endVertex();
+        vertices.vertex(matrix, w, 0.0F, -0.01F).color(r, g, b, a).uv(u1, v0).uv2(lightTexture).endVertex();
+        vertices.vertex(matrix, 0.0F, 0.0F, -0.01F).color(r, g, b, a).uv(u0, v0).uv2(lightTexture).endVertex();
     }
 
     public static void renderChromaticGradient(PoseStack stack, float w, float h){
