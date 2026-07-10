@@ -11,7 +11,7 @@ import com.eerussianguy.blazemap.api.BlazeMapReferences;
 import com.eerussianguy.blazemap.api.maps.GhostOverlay;
 import com.eerussianguy.blazemap.api.maps.TileResolution;
 import com.eerussianguy.blazemap.api.markers.Marker;
-import com.eerussianguy.blazemap.api.markers.Waypoint;
+import com.eerussianguy.blazemap.feature.waypoints.service.Waypoint;
 import com.eerussianguy.blazemap.feature.waypoints.service.WaypointServiceClient;
 import com.eerussianguy.blazemap.lib.Helpers;
 
@@ -34,7 +34,7 @@ public class WaypointOverlay extends GhostOverlay {
 
         ArrayList<Waypoint> list = new ArrayList<>();
         waypoints.iterate((waypoint, group) -> {
-            if(group.getState(waypoint.getID()).isVisible()) {
+            if(waypoint.isMapVisible()) {
                 list.add(waypoint);
             }
         });

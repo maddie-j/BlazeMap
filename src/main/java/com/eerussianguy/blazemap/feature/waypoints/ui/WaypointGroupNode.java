@@ -6,9 +6,9 @@ import java.util.List;
 
 import net.minecraft.resources.ResourceLocation;
 
-import com.eerussianguy.blazemap.api.markers.Waypoint;
 import com.eerussianguy.blazemap.feature.waypoints.WaypointEditorFragment;
 import com.eerussianguy.blazemap.feature.waypoints.WaypointGroupEditorFragment;
+import com.eerussianguy.blazemap.feature.waypoints.service.Waypoint;
 import com.eerussianguy.blazemap.feature.waypoints.service.WaypointGroup;
 import com.eerussianguy.blazemap.lib.Colors;
 import com.eerussianguy.blazemap.lib.Helpers;

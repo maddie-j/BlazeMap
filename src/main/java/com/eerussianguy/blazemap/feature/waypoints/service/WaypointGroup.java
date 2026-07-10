@@ -10,18 +10,17 @@ import net.minecraft.network.chat.TextComponent;
 import net.minecraft.resources.ResourceLocation;
 
 import com.eerussianguy.blazemap.api.markers.MarkerStorage;
-import com.eerussianguy.blazemap.api.markers.Waypoint;
 
 public class WaypointGroup implements MarkerStorage<Waypoint> {
-    private static final HashMap<ResourceLocation, Supplier<WaypointGroup>> GROUPS = new HashMap<>();
+    private static final HashMap<ResourceLocation, Supplier<WaypointGroup>> GROUP_DEFINITIONS = new HashMap<>();
 
     public static WaypointGroup make(ResourceLocation type) {
         assertDefined(type);
-        return GROUPS.get(type).get();
+        return GROUP_DEFINITIONS.get(type).get();
     }
 
     public static void assertDefined(ResourceLocation type) {
-        if(!GROUPS.containsKey(type)) {
+        if(!GROUP_DEFINITIONS.containsKey(type)) {
             throw new IllegalStateException("WaypointGroup type "+type+" has not been defined");
         }
     }
@@ -29,15 +28,15 @@ public class WaypointGroup implements MarkerStorage<Waypoint> {
     public static void define(ResourceLocation type, Supplier<WaypointGroup> factory) {
         Objects.requireNonNull(type);
         Objects.requireNonNull(factory);
-        if(GROUPS.containsKey(type)) throw new IllegalStateException("Group "+type+" already defined!");
-        GROUPS.put(type, factory);
+
+        if(GROUP_DEFINITIONS.containsKey(type)) throw new IllegalStateException("Group "+type+" already defined!");
+        GROUP_DEFINITIONS.put(type, factory);
     }
 
     // =================================================================================================================
     public final ResourceLocation type;
     public final ManagementType management;
     protected final HashMap<ResourceLocation, Waypoint> waypoints = new HashMap<>();
-    protected final HashMap<ResourceLocation, LocalState> states = new HashMap<>();
     private final LocalState state = new LocalState();
     private NameType nameType = NameType.USER_GIVEN;
     private Component name;
@@ -55,10 +54,6 @@ public class WaypointGroup implements MarkerStorage<Waypoint> {
 
     public LocalState getState() {
         return state;
-    }
-
-    public LocalState getState(ResourceLocation marker) {
-        return states.get(marker);
     }
 
     public boolean isUserNamed() {
@@ -87,8 +82,10 @@ public class WaypointGroup implements MarkerStorage<Waypoint> {
         if(nameType == NameType.SYSTEM) {
             throw new IllegalStateException("cannot name group with system name");
         }
+
         this._name = name;
         this.name = new TextComponent(name);
+        this.nameType = NameType.USER_GIVEN;
         return this;
     }
 
@@ -97,25 +94,21 @@ public class WaypointGroup implements MarkerStorage<Waypoint> {
         return waypoints.values();
     }
 
-    public void add(Waypoint marker, LocalState state) {
+    @Override
+    public void add(Waypoint marker) {
         var key = marker.getID();
+
         if(waypoints.containsKey(key)) {
             throw new IllegalArgumentException("Waypoint Group already contains this waypoint");
         }
-        waypoints.put(key, marker);
-        state.setParent(this.state);
-        states.put(key, state);
-    }
 
-    @Override
-    public void add(Waypoint marker) {
-        add(marker, new LocalState());
+        waypoints.put(key, marker);
+        marker.getState().setParent(this.state);
     }
 
     @Override
     public void remove(ResourceLocation id) {
         waypoints.remove(id);
-        states.remove(id);
     }
 
     @Override

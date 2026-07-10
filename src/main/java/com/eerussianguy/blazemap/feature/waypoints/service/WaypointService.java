@@ -10,7 +10,6 @@ import net.minecraft.world.level.Level;
 
 import net.minecraftforge.fml.LogicalSide;
 
-import com.eerussianguy.blazemap.api.markers.Waypoint;
 import com.eerussianguy.blazemap.api.util.StorageAccess;
 
 public abstract class WaypointService {
@@ -27,6 +26,7 @@ public abstract class WaypointService {
     protected WaypointService(LogicalSide side, StorageAccess.ServerStorage storage) {
         this.storage = storage;
         List<WaypointPool> created = new ArrayList<>();
+
         for(var key : WaypointChannel.REGISTRY.keys()) {
             var channel = key.value();
             created.addAll(switch(side) {
@@ -34,9 +34,11 @@ public abstract class WaypointService {
                 case SERVER -> channel.createServerPools();
             });
         }
+
         for(var pool : created) {
             pools.put(pool.id, pool);
         }
+
         view = Collections.unmodifiableList(created);
     }
 

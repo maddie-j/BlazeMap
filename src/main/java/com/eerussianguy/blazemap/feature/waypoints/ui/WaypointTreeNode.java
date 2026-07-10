@@ -56,15 +56,17 @@ public abstract class WaypointTreeNode extends Label implements Tree.TreeItem, B
 
     @Override
     public void render(PoseStack stack, boolean hasMouse, int mouseX, int mouseY) {
-        ResourceLocation texture = switch(state.getVisibility()) {
+        ResourceLocation texture = switch(state.getMapVisibility()) {
             case TRUE -> ON_OVERRIDE;
             case FALSE -> OFF_OVERRIDE;
-            case DEFAULT -> state.isVisible() ? ON_INHERITED : OFF_INHERITED;
+            case DEFAULT -> state.isMapVisible() ? ON_INHERITED : OFF_INHERITED;
         };
         RenderHelper.drawTexturedQuad(texture, Colors.NO_TINT, stack, visibility.getPositionX(), visibility.getPositionY(), visibility.getWidth(), visibility.getHeight());
+
         if(isDeletable()) {
             RenderHelper.drawTexturedQuad(REMOVE, Screen.hasShiftDown() ? Colors.NO_TINT : Colors.DISABLED, stack, delete.getPositionX(), delete.getPositionY(), delete.getWidth(), delete.getHeight());
         }
+
         if(isEditable()) {
             RenderHelper.drawTexturedQuad(EDIT, Colors.NO_TINT, stack, edit.getPositionX(), edit.getPositionY(), edit.getWidth(), edit.getHeight());
         }
@@ -76,7 +78,7 @@ public abstract class WaypointTreeNode extends Label implements Tree.TreeItem, B
     @Override
     protected void renderTooltip(PoseStack stack, int mouseX, int mouseY, TooltipService service) {
         if(visibility.mouseIntercepts(mouseX, mouseY)) {
-            InheritedBoolean visible = state.getVisibility();
+            InheritedBoolean visible = state.getMapVisibility();
             var tooltip = Helpers.translate(switch(visible) {
                 case TRUE -> "blazemap.gui.button.visibility_show";
                 case FALSE -> "blazemap.gui.button.visibility_hide";
@@ -112,7 +114,7 @@ public abstract class WaypointTreeNode extends Label implements Tree.TreeItem, B
 
     @Override
     public int getColor() {
-        return state.isVisible() ? Colors.WHITE : Colors.DISABLED;
+        return state.isMapVisible() ? Colors.WHITE : Colors.DISABLED;
     }
 
     @Override
@@ -123,13 +125,14 @@ public abstract class WaypointTreeNode extends Label implements Tree.TreeItem, B
                 case GLFW.GLFW_MOUSE_BUTTON_2 -> -1;
                 default -> 0;
             };
+
             if(direction == 0) {
                 playDeniedSound();
-            }
-            else {
+            } else {
                 playOkSound();
-                state.setVisibility(Helpers.cycle(state.getVisibility(), direction));
+                state.setMapVisibility(Helpers.cycle(state.getMapVisibility(), direction));
             }
+
             return true;
         }
         if(isDeletable() && delete.mouseIntercepts(mouseX, mouseY)) {

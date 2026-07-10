@@ -16,7 +16,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
 
 import com.eerussianguy.blazemap.BlazeMap;
-import com.eerussianguy.blazemap.api.markers.Waypoint;
 import com.eerussianguy.blazemap.api.util.MinecraftStreams;
 import com.eerussianguy.blazemap.api.util.StorageAccess;
 
@@ -79,6 +78,7 @@ public abstract class WaypointPool {
     public abstract void save(StorageAccess.ServerStorage storage);
     public abstract void load(StorageAccess.ServerStorage storage);
 
+    // TODO: Write to temporary file first, then overwrite to final location on success
     protected void save(StorageAccess.ServerStorage storage, ResourceLocation file) {
         try(MinecraftStreams.Output output = storage.write(file)) {
             WaypointSerialization.FORMAT.write(groups, output);

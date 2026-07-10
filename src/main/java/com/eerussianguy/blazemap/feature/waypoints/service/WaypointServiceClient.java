@@ -11,7 +11,6 @@ import net.minecraftforge.fml.LogicalSide;
 
 import com.eerussianguy.blazemap.BlazeMap;
 import com.eerussianguy.blazemap.api.event.ClientEngineEvent;
-import com.eerussianguy.blazemap.api.markers.Waypoint;
 import com.eerussianguy.blazemap.api.util.StorageAccess;
 import com.eerussianguy.blazemap.config.BlazeMapConfig;
 import com.eerussianguy.blazemap.lib.Helpers;
@@ -38,17 +37,19 @@ public class WaypointServiceClient extends WaypointService {
     @SubscribeEvent
     public static void onDeath(EntityLeaveWorldEvent event) {
         if(!BlazeMapConfig.CLIENT.clientFeatures.deathWaypoints.get()) return;
-        var entity = event.getEntity();
-        if(!entity.level.isClientSide) return;
-        if(entity instanceof LocalPlayer player) {
-            if(!player.isDeadOrDying()) return;
 
-            var dimension = player.level.dimension();
-            Waypoint waypoint = new Waypoint(BlazeMap.resource("waypoint/death/"+System.nanoTime()), dimension, player.blockPosition(), Helpers.getISO8601('-', ' ', ':'), DEATH);
-            client.getPool(WaypointChannelLocal.PRIVATE_POOL).getGroups(dimension)
-                .stream().filter(g -> g.type == WaypointChannelLocal.GROUP_DEATH).findFirst()
-                .ifPresent(g -> g.add(waypoint));
-        }
+        var entity = event.getEntity();
+
+        if(!entity.level.isClientSide) return;
+        if(!(entity instanceof LocalPlayer player)) return;
+        if(!player.isDeadOrDying()) return;
+
+        var dimension = player.level.dimension();
+        Waypoint waypoint = new Waypoint(BlazeMap.resource("waypoint/death/"+System.nanoTime()), dimension, player.blockPosition(), Helpers.getISO8601('-', ' ', ':'), DEATH);
+
+        client.getPool(WaypointChannelLocal.PRIVATE_POOL).getGroups(dimension)
+            .stream().filter(g -> g.type == WaypointChannelLocal.GROUP_DEATH).findFirst()
+            .ifPresent(g -> g.add(waypoint));
     }
 
     // =================================================================================================================

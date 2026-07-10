@@ -20,9 +20,9 @@ import net.minecraftforge.eventbus.api.IEventBus;
 
 import javax.annotation.Nonnull;
 
-import com.eerussianguy.blazemap.api.markers.Waypoint;
 import com.eerussianguy.blazemap.config.BlazeMapConfig;
 import com.eerussianguy.blazemap.config.ServerConfig;
+import com.eerussianguy.blazemap.feature.waypoints.service.Waypoint;
 import com.eerussianguy.blazemap.feature.waypoints.service.WaypointServiceClient;
 import com.eerussianguy.blazemap.lib.Colors;
 import com.eerussianguy.blazemap.lib.Helpers;
@@ -75,7 +75,7 @@ public class WaypointRenderer {
         MultiBufferSource.BufferSource buffers = mc.renderBuffers().bufferSource();
 
         WaypointServiceClient.instance().iterate(w -> {
-            if (!w.shouldRenderWaypointInWorld()) return;
+            if (!w.isInWorldVisible()) return;
 
             final BlockPos pos = w.getPosition();
             // TODO: Swap to just using a call to pos.getCenter() where needed in 1.19+
@@ -113,8 +113,8 @@ public class WaypointRenderer {
 
     private static void renderWaypoint(Minecraft mc, PoseStack stack, MultiBufferSource.BufferSource buffers, Waypoint w, Vec3 pos, Level level, float partialTick, float alpha) {
         stack.pushPose();
-            if (w.shouldShowBeam()) renderWaypointBeam(stack, buffers, level, partialTick, w, pos, alpha);
-            if (w.shouldShowLabel()) renderWaypointLabel(mc, stack, buffers, w, pos, alpha);
+            if (w.isBeamVisible()) renderWaypointBeam(stack, buffers, level, partialTick, w, pos, alpha);
+            if (w.isLabelVisible()) renderWaypointLabel(mc, stack, buffers, w, pos, alpha);
         stack.popPose();
     }
 

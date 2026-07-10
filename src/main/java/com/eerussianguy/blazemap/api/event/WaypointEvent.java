@@ -1,8 +1,8 @@
 package com.eerussianguy.blazemap.api.event;
 
-import net.minecraftforge.eventbus.api.Event;
+import com.eerussianguy.blazemap.feature.waypoints.service.Waypoint;
 
-import com.eerussianguy.blazemap.api.markers.Waypoint;
+import net.minecraftforge.eventbus.api.Event;
 
 public class WaypointEvent extends Event {
     public final Waypoint waypoint;
