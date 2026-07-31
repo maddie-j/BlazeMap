@@ -92,6 +92,16 @@ public class Positionable<T extends Positionable<T>> {
         return height;
     }
 
+    public Positionable<T> setWidth(int size) {
+        width = size;
+        return this;
+    }
+
+    public Positionable<T> setHeight(int size) {
+        height = size;
+        return this;
+    }
+
     /**
      * Called by containers that stretch with content size
      * Must be overridden by components that stretch with parent container size

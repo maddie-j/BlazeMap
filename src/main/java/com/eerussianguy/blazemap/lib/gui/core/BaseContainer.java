@@ -11,7 +11,7 @@ import net.minecraft.client.gui.components.events.GuiEventListener;
 import com.mojang.blaze3d.vertex.PoseStack;
 
 public abstract class BaseContainer<T extends BaseContainer<T>> extends BaseComponent<T> implements UIEventListener {
-    private final List<BaseComponent<?>> renderables = new ArrayList<>();
+    protected final List<BaseComponent<?>> renderables = new ArrayList<>();
     private final List<GuiEventListener> listeners = new ArrayList<>();
     private GuiEventListener focus, fallback;
 
@@ -137,13 +137,13 @@ public abstract class BaseContainer<T extends BaseContainer<T>> extends BaseComp
     }
 
     protected double offsetX(double x, GuiEventListener child) {
-        int selfX = getReferenceFrame() == ReferenceFrame.GLOBAL ? getPositionX() : 0;
+        int selfX = isGlobal() ? getPositionX() : 0;
         int childX = ((BaseComponent<?>)child).getPositionX();
         return x - (selfX + childX);
     }
 
     protected double offsetY(double y, GuiEventListener child) {
-        int selfY = getReferenceFrame() == ReferenceFrame.GLOBAL ? getPositionY() : 0;
+        int selfY = isGlobal() ? getPositionY() : 0;
         int childY = ((BaseComponent<?>)child).getPositionY();
         return y - (selfY + childY);
     }
@@ -155,7 +155,7 @@ public abstract class BaseContainer<T extends BaseContainer<T>> extends BaseComp
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if(getReferenceFrame() == ReferenceFrame.GLOBAL) {
+        if(isGlobal()) {
             var clicked = getLeafListenerAt(mouseX, mouseY).orElse(null);
             if(clicked != focus) {
                 boolean changed = false;
@@ -190,7 +190,7 @@ public abstract class BaseContainer<T extends BaseContainer<T>> extends BaseComp
     @Override
     public boolean keyPressed(int key, int scancode, int modifiers) {
         var consumer = getInputConsumer();
-        if(getReferenceFrame() == ReferenceFrame.GLOBAL && consumer != null) {
+        if(isGlobal() && consumer != null) {
             return consumer.keyPressed(key, 0, 0);
         }
         return false;
@@ -199,7 +199,7 @@ public abstract class BaseContainer<T extends BaseContainer<T>> extends BaseComp
     @Override
     public boolean keyReleased(int key, int scancode, int modifiers) {
         var consumer = getInputConsumer();
-        if(getReferenceFrame() == ReferenceFrame.GLOBAL && consumer != null) {
+        if(isGlobal() && consumer != null) {
             return consumer.keyReleased(key, 0, 0);
         }
         return false;
@@ -208,7 +208,7 @@ public abstract class BaseContainer<T extends BaseContainer<T>> extends BaseComp
     @Override
     public boolean charTyped(char ch, int modifier) {
         var consumer = getInputConsumer();
-        if(getReferenceFrame() == ReferenceFrame.GLOBAL && consumer != null) {
+        if(isGlobal() && consumer != null) {
             return consumer.charTyped(ch, modifier);
         }
         return false;

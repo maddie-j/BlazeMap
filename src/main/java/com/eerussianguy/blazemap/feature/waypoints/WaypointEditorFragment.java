@@ -11,13 +11,14 @@ import net.minecraft.world.level.Level;
 
 import com.eerussianguy.blazemap.BlazeMap;
 import com.eerussianguy.blazemap.api.BlazeMapReferences;
-import com.eerussianguy.blazemap.api.markers.Waypoint;
+import com.eerussianguy.blazemap.feature.waypoints.service.Waypoint;
 import com.eerussianguy.blazemap.feature.waypoints.service.WaypointGroup;
 import com.eerussianguy.blazemap.feature.waypoints.service.WaypointServiceClient;
 import com.eerussianguy.blazemap.lib.*;
 import com.eerussianguy.blazemap.lib.gui.components.*;
 import com.eerussianguy.blazemap.lib.gui.components.selection.DropdownList;
 import com.eerussianguy.blazemap.lib.gui.components.selection.SelectionGrid;
+import com.eerussianguy.blazemap.lib.gui.core.DynamicContainer;
 import com.eerussianguy.blazemap.lib.gui.core.VolatileContainer;
 import com.eerussianguy.blazemap.lib.gui.fragment.BaseFragment;
 import com.eerussianguy.blazemap.lib.gui.fragment.FragmentContainer;
@@ -52,33 +53,34 @@ public class WaypointEditorFragment extends BaseFragment {
 
     @Override
     public void compose(FragmentContainer container, VolatileContainer volatiles) {
-        int y = 0;
+        container.setBaseWidth(160);
 
         if(container.titleConsumer.isPresent()) {
             container.titleConsumer.get().accept(getTitle());
         } else {
-            container.add(new Label(getTitle()), 0, y);
-            y = 15;
+            container.addRow(new Label(getTitle()));
         }
 
 
         // BASIC INFORMATION ===========================================================================================
-        container.add(new SectionLabel("Basic Information").setWidth(160), 0, y);
+        container.addRow(new SectionLabel("Basic Information")).setRelativeWidths(1);
 
         ObjHolder<String> name = new ObjHolder<>(waypoint.getName());
-        container.add(VanillaComponents.makeTextField(font, 160, 14, name), 0, y+=13);
+        container.addRow(VanillaComponents.makeTextField(font, 160, 14, name)).setRelativeWidths(1);
 
         var pos = waypoint.getPosition();
         IntHolder posX = new IntHolder(pos.getX()), posY = new IntHolder(pos.getY()), posZ = new IntHolder(pos.getZ());
-        container.add(VanillaComponents.makeIntField(font, 58, 14, posX), 0  , y += 17);
-        container.add(VanillaComponents.makeIntField(font, 38, 14, posY), 61 , y);
-        container.add(VanillaComponents.makeIntField(font, 58, 14, posZ), 102, y);
+        container.addRow(
+            VanillaComponents.makeIntField(font, 58, 14, posX), 
+            VanillaComponents.makeIntField(font, 38, 14, posY), 
+            VanillaComponents.makeIntField(font, 58, 14, posZ)
+        );
 
         DropdownList<ResourceKey<Level>> dimensions = new DropdownList<>(volatiles, d -> new Label(d.location().toString()));
         var dimensionsModel = dimensions.getModel();
         dimensionsModel.setElements(RegistryHelper.getAllDimensions());
         dimensionsModel.setSelected(waypoint.getDimension());
-        container.add(dimensions.setSize(160, 14), 0, y += 17);
+        container.addRow(dimensions.setSize(160, 14)).setRelativeWidths(1);
 
         DropdownList<WaypointGroup> groups = new DropdownList<>(volatiles, g -> new Label(g.getName()));
         var groupsModel = groups.getModel();
@@ -97,33 +99,37 @@ public class WaypointEditorFragment extends BaseFragment {
                 }
             }
         });
-        container.add(groups.setSize(160, 14), 0, y += 17);
+        container.addRow(groups.setSize(160, 14)).setRelativeWidths(1);
 
         // APPEARANCE ==================================================================================================
-        container.add(new SectionLabel("Appearance").setWidth(160), 0, y += 22);
+        container.addRow(new SectionLabel("Appearance")).setRelativeWidths(1);
+        
         IntHolder color = new IntHolder(waypoint.getColor());
         float[] hsb = Colors.RGB2HSB(color.get());
 
         SelectionGrid<ResourceLocation> icons = new SelectionGrid<>(Function.identity(), 16, 1, BlazeMapReferences.Icons.ALL_WAYPOINTS).setSize(160, 0).setInitialValue(waypoint.getIcon());
-        container.add(icons, 0, y += 13);
+        container.addRow(icons);
 
         ImageDisplay display = new ImageDisplay().setSize(48, 48).setImageSize(32, 32).setColor(color::get);
         icons.setListener(display::setImage);
-        container.add(display, 0, y += (icons.getHeight() + 3));
 
         Slider hue = new HueSlider().setSize(58, 14).setValue(hsb[0]);
-        container.add(hue, 51, y);
-
-        SBPicker sbPicker = new SBPicker().setSize(48, 48).setHue(hsb[0]).setValue(hsb[1], hsb[2]);
-        container.add(sbPicker, 112, y);
-
         Label hex = new Label(String.format("#%06X", color.get() & ~Colors.ALPHA)).setColor(Colors.UNFOCUSED);
-        container.add(hex, 51, y+= 17);
 
         TextButton reserved = new TextButton(new TextComponent("Reserved"), $ -> {}).setSize(58, 14);
-        container.add(reserved, 51, y+= 17);
         reserved.setEnabled(false);
         reserved.addTooltip(new TextComponent("Reserved for a cool feature later,"), new TextComponent("it does nothing yet."));
+
+        DynamicContainer middleColumn = new DynamicContainer(0, DynamicContainer.DEFAULT_MARGIN);
+        middleColumn.setBaseHeight(display.getHeight());
+        middleColumn.addRow(hue);
+        middleColumn.addRow(hex);
+        middleColumn.addBottomRow(reserved);
+        middleColumn.finalise();
+
+        SBPicker sbPicker = new SBPicker().setSize(48, 48).setHue(hsb[0]).setValue(hsb[1], hsb[2]);
+
+        container.addRow(display, middleColumn, sbPicker);
 
         hue.setListener(h -> {
             hsb[0] = h;
@@ -140,6 +146,14 @@ public class WaypointEditorFragment extends BaseFragment {
         });
 
 
+        // // VISIBILITY ===========================================================================================
+        // container.addRow(new SectionLabel("Visibility")).setRelativeWidths(1);
+
+        // new TextButton(Helpers.translate("blazemap.gui.button.save"), button -> {
+        //     // TODO
+        // });
+
+
         // SUBMIT ======================================================================================================
         TextButton submit = new TextButton(Helpers.translate("blazemap.gui.button.save"), button -> {
             waypoint.setName(name.get());
@@ -153,6 +167,8 @@ public class WaypointEditorFragment extends BaseFragment {
             }
             container.dismiss();
         });
-        container.add(submit.setSize(80, 20), 40, y+20);
+        container.addRow(submit.setSize(80, 20)).shouldCenter();
+
+        container.finalise();
     }
 }

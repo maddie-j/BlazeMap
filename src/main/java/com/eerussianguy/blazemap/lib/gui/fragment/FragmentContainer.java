@@ -8,13 +8,12 @@ import net.minecraft.network.chat.Component;
 import com.eerussianguy.blazemap.lib.Colors;
 import com.eerussianguy.blazemap.lib.RenderHelper;
 import com.eerussianguy.blazemap.lib.gui.core.BaseComponent;
-import com.eerussianguy.blazemap.lib.gui.core.BaseContainer;
+import com.eerussianguy.blazemap.lib.gui.core.DynamicContainer;
 import com.mojang.blaze3d.vertex.PoseStack;
 
-public class FragmentContainer extends BaseContainer<FragmentContainer> {
+public class FragmentContainer extends DynamicContainer {
     public final Optional<Consumer<Component>> titleConsumer;
     private Runnable dismiss;
-    private final int padding;
     private int background;
 
     public FragmentContainer(Runnable dismiss, int padding) {
@@ -26,6 +25,8 @@ public class FragmentContainer extends BaseContainer<FragmentContainer> {
     }
 
     protected FragmentContainer(Runnable dismiss, Optional<Consumer<Component>> titleConsumer, int padding) {
+        super(padding, DynamicContainer.DEFAULT_MARGIN);
+
         this.titleConsumer = titleConsumer;
         this.padding = padding;
         this.dismiss = dismiss;

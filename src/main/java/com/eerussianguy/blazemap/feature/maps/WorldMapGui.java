@@ -119,8 +119,9 @@ public class WorldMapGui extends Screen implements FragmentHost, TooltipService 
         components.anchor(maps,brand_icon, ContainerAxis.HORIZONTAL, ContainerDirection.POSITIVE);
         maps.add(new Image(HEADER_MAPS, 16, 16).tooltip(new TextComponent("Maps")));
         maps.addSpacer();
+
         List<LineContainer> layerSets = new ArrayList<>();
-        for(var mapType : mapTypes) {
+        for(MapType mapType : mapTypes) {
             LineContainer layerSet = new LineContainer(ContainerAxis.VERTICAL, ContainerDirection.NEGATIVE, 2).withBackground();
             components.anchor(layerSet, brand_icon, ContainerAxis.VERTICAL, ContainerDirection.POSITIVE);
             layerSets.add(layerSet);
@@ -130,6 +131,7 @@ public class WorldMapGui extends Screen implements FragmentHost, TooltipService 
             for(var layer : mapType.getLayers()) {
                 layerSet.add(new LayerButton(layer, map));
             }
+
             layerSet.addSpacer().add(new Image(HEADER_LAYERS, 16, 16).tooltip(new TextComponent("Layers")));
         }
 

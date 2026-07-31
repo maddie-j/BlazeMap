@@ -36,6 +36,10 @@ public class Label extends BaseComponent<Label> {
         return 10;
     }
 
+    public int getHeight() {
+        return getTextHeight();
+    }
+
     @Override
     public void render(PoseStack stack, boolean hasMouse, int mouseX, int mouseY) {
         text.map(
