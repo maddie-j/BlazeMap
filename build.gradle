@@ -72,7 +72,8 @@ repositories {
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
 
-    compileOnly "curse.maven:$rubidium_project_id:$rubidium_file_id"
+    compileOnly fg.deobf("curse.maven:$rubidium_project_id:$rubidium_file_id")
+    // implementation fg.deobf("curse.maven:$rubidium_project_id:$rubidium_file_id")
 
     compileOnly fg.deobf("curse.maven:$architectury_project_id:$architectury_file_id")
     compileOnly fg.deobf("curse.maven:$ftbchunks_project_id:$ftbchunks_file_id")

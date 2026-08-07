@@ -11,11 +11,18 @@ import net.minecraft.network.chat.TextComponent;
 import com.eerussianguy.blazemap.lib.IntHolder;
 import com.eerussianguy.blazemap.lib.ObjHolder;
 import com.eerussianguy.blazemap.lib.gui.core.BaseComponent;
+import com.eerussianguy.blazemap.lib.gui.core.GuiConst;
 import com.eerussianguy.blazemap.lib.gui.core.WrappedComponent;
 
 public class VanillaComponents {
+    public static BaseComponent<?> makeTextField(Font font, ObjHolder<String> value) {
+        return makeTextField(font, GuiConst.DEFAULT_FIELD_WIDTH, value);
+    }
+    public static BaseComponent<?> makeTextField(Font font, int w, ObjHolder<String> value) {
+        return makeTextField(font, w, GuiConst.DEFAULT_FIELD_HEIGHT, value);
+    }
     public static BaseComponent<?> makeTextField(Font font, int w, int h, ObjHolder<String> value) {
-        EditBox textBox = new EditBox(font, 0, 0, w - 2, h - 2, TextComponent.EMPTY);
+        EditBox textBox = makeEditBox(font, w, h);
         textBox.setValue(value.get());
         textBox.setResponder(value::set);
         return ((WrappedComponent.WrappedVanilla) WrappedComponent.of(textBox)).setPadding(1);
@@ -23,7 +30,7 @@ public class VanillaComponents {
 
     // FIXME: very broken for some unholy reason
     public static BaseComponent<?> makeRGBHexField(Font font, int w, int h, ObjHolder<String> value) {
-        EditBox textBox = new EditBox(font, 0, 0, w - 2, h - 2, TextComponent.EMPTY);
+        EditBox textBox = makeEditBox(font, w, h);
         textBox.setValue(value.get());
         textBox.setResponder(value::set);
         textBox.setMaxLength(6);
@@ -31,12 +38,27 @@ public class VanillaComponents {
         return ((WrappedComponent.WrappedVanilla) WrappedComponent.of(textBox)).setPadding(1);
     }
 
+    public static BaseComponent<?> makeIntField(Font font, IntHolder value) {
+        return makeIntField(font, GuiConst.DEFAULT_FIELD_WIDTH, value);
+    }
+    public static BaseComponent<?> makeIntField(Font font, int w, IntHolder value) {
+        return makeIntField(font, w, GuiConst.DEFAULT_FIELD_HEIGHT, value);
+    }
     public static BaseComponent<?> makeIntField(Font font, int w, int h, IntHolder value) {
-        EditBox textBox = new EditBox(font, 0, 0, w - 2, h - 2, TextComponent.EMPTY);
+        EditBox textBox = makeEditBox(font, w, h);
         textBox.setValue(String.valueOf(value.get()));
         IntEnforcer enforcer = new IntEnforcer(value::get, value::set);
         enforcer.setSubject(textBox);
         return ((WrappedComponent.WrappedVanilla) WrappedComponent.of(textBox)).setPadding(1);
+    }
+
+    private static EditBox makeEditBox(Font font, int w, int h) {
+        return new EditBox(
+            font,
+            0, 0,
+            w - GuiConst.BORDER_WIDTH * 2, h,
+            TextComponent.EMPTY
+        );
     }
 
     // FIXME: we should be able to do this with just filters

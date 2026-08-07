@@ -4,8 +4,8 @@ public class Positionable<T extends Positionable<T>> {
     private ReferenceFrame referenceFrame = ReferenceFrame.GLOBAL;
     private ContainerAnchor anchor = ContainerAnchor.NONE;
     private BaseComponent<?> parent;
-    private int positionX, positionY;
-    private int width, height;
+    private int positionX, positionY = 0;
+    protected int width, height;
 
     protected T withParent(BaseComponent<?> parent) {
         this.parent = parent;

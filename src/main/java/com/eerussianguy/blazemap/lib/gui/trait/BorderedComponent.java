@@ -2,6 +2,7 @@ package com.eerussianguy.blazemap.lib.gui.trait;
 
 import com.eerussianguy.blazemap.lib.Colors;
 import com.eerussianguy.blazemap.lib.RenderHelper;
+import com.eerussianguy.blazemap.lib.gui.core.GuiConst;
 import com.mojang.blaze3d.vertex.PoseStack;
 
 public interface BorderedComponent {
@@ -36,8 +37,13 @@ public interface BorderedComponent {
             }
 
             RenderHelper.fillRect(stack.last().pose(), w, h, border);
-            stack.translate(1, 1, 0);
-            RenderHelper.fillRect(stack.last().pose(), w - 2, h - 2, background);
+            stack.translate(GuiConst.BORDER_WIDTH, GuiConst.BORDER_WIDTH, 0);
+            RenderHelper.fillRect(
+                stack.last().pose(), 
+                w - GuiConst.BORDER_WIDTH * 2, 
+                h - GuiConst.BORDER_WIDTH * 2, 
+                background
+            );
         stack.popPose();
     }
 

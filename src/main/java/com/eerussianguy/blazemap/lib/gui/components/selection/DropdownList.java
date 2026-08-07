@@ -7,6 +7,7 @@ import com.eerussianguy.blazemap.lib.RenderHelper;
 import com.eerussianguy.blazemap.lib.gui.core.BaseComponent;
 import com.eerussianguy.blazemap.lib.gui.core.ContainerAnchor;
 import com.eerussianguy.blazemap.lib.gui.core.EdgeReference;
+import com.eerussianguy.blazemap.lib.gui.core.GuiConst;
 import com.eerussianguy.blazemap.lib.gui.core.VolatileContainer;
 import com.eerussianguy.blazemap.lib.gui.trait.FocusableComponent;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -14,6 +15,8 @@ import com.mojang.blaze3d.vertex.PoseStack;
 public class DropdownList<T> extends BaseComponent<DropdownList<T>> implements FocusableComponent {
     protected static final ResourceLocation ARROW_DOWN = BlazeMap.resource("textures/gui/arrow_down.png");
     protected static final ResourceLocation ARROW_UP = BlazeMap.resource("textures/gui/arrow_up.png");
+
+    protected final int ARROW_OFFSET = GuiConst.DEFAULT_PADDING * 2;
 
     protected final EdgeReference arrow;
     protected final VolatileContainer volatiles;
@@ -35,11 +38,13 @@ public class DropdownList<T> extends BaseComponent<DropdownList<T>> implements F
             }
             else {
                 selected = materializer.transform(item);
-                selected.setPosition(2, 2);
+                selected.setPosition(GuiConst.DEFAULT_PADDING, GuiConst.DEFAULT_PADDING);
             }
         });
 
-        this.arrow = new EdgeReference(this, ContainerAnchor.TOP_RIGHT).setPosition(3, 3);
+        this.arrow = new EdgeReference(this, ContainerAnchor.TOP_RIGHT).setPosition(ARROW_OFFSET, ARROW_OFFSET);
+
+        this.setSize(GuiConst.DEFAULT_FIELD_WIDTH, GuiConst.DEFAULT_FIELD_HEIGHT + GuiConst.BORDER_WIDTH * 2);
     }
 
     public SelectionModelSingle<T> getModel() {
@@ -49,6 +54,7 @@ public class DropdownList<T> extends BaseComponent<DropdownList<T>> implements F
     @Override
     public void render(PoseStack stack, boolean hasMouse, int mouseX, int mouseY) {
         renderFocusableBackground(stack);
+        stack.translate(GuiConst.BORDER_WIDTH, 0, 0);
 
         var icon = open ? ARROW_UP : ARROW_DOWN;
         RenderHelper.drawTexturedQuad(icon, getFocusColor(), stack, arrow.getPositionX(), arrow.getPositionY(), arrow.getWidth(), arrow.getHeight());
@@ -66,13 +72,13 @@ public class DropdownList<T> extends BaseComponent<DropdownList<T>> implements F
 
     @Override
     public DropdownList<T> setSize(int w, int h) {
-        list.setSize(w, h * 5);
-        arrow.setSize(h - 6, h - 6);
+        list.setSize(w - GuiConst.BORDER_WIDTH, h * 5);
+        arrow.setSize(h - ARROW_OFFSET * 2, h - ARROW_OFFSET * 2);
         return super.setSize(w, h);
     }
 
     protected void spawnDropdown() {
-        volatiles.add(list, getGlobalPositionX(), getGlobalPositionY() + getHeight() - 1);
+        volatiles.add(list, getGlobalPositionX() + GuiConst.BORDER_WIDTH, getGlobalPositionY() + getHeight() - 1);
     }
 
     @Override

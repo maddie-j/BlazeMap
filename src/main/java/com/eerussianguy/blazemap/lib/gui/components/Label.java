@@ -7,6 +7,7 @@ import net.minecraft.util.FormattedCharSequence;
 
 import com.eerussianguy.blazemap.lib.Colors;
 import com.eerussianguy.blazemap.lib.gui.core.BaseComponent;
+import com.eerussianguy.blazemap.lib.gui.core.GuiConst;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.datafixers.util.Either;
 
@@ -33,7 +34,7 @@ public class Label extends BaseComponent<Label> {
     }
 
     public int getTextHeight() {
-        return 10;
+        return GuiConst.DEFAULT_FONT_HEIGHT;
     }
 
     public int getHeight() {
@@ -43,8 +44,8 @@ public class Label extends BaseComponent<Label> {
     @Override
     public void render(PoseStack stack, boolean hasMouse, int mouseX, int mouseY) {
         text.map(
-            fmt -> font.draw(stack, fmt, 0, 1, getColor()),
-            str -> font.draw(stack, str, 0, 1, getColor())
+            fmt -> font.draw(stack, fmt, this.getPositionX(), this.getPositionY(), getColor()),
+            str -> font.draw(stack, str, this.getPositionX(), this.getPositionY(), getColor())
         );
     }
 
@@ -75,5 +76,10 @@ public class Label extends BaseComponent<Label> {
 
     protected Label setLabelWidth() {
         return setSize(getTextWidth(), getTextHeight());
+    }
+
+    @Override
+    public String toString() {
+        return this.text.toString();
     }
 }

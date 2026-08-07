@@ -5,6 +5,7 @@ import net.minecraft.util.FormattedCharSequence;
 
 import com.eerussianguy.blazemap.lib.Colors;
 import com.eerussianguy.blazemap.lib.RenderHelper;
+import com.eerussianguy.blazemap.lib.gui.core.GuiConst;
 import com.mojang.blaze3d.vertex.PoseStack;
 
 public class SectionLabel extends Label {
@@ -12,16 +13,22 @@ public class SectionLabel extends Label {
     public SectionLabel(String text) {
         super(text);
         this.setColor(Colors.DISABLED);
+        this.moveY(GuiConst.DEFAULT_PADDING);
+        this.setHeight(getTextHeight() + this.getPositionY());
     }
 
     public SectionLabel(Component text) {
         super(text);
         this.setColor(Colors.DISABLED);
+        this.moveY(GuiConst.DEFAULT_PADDING);
+        this.setHeight(getTextHeight() + this.getPositionY());
     }
 
     public SectionLabel(FormattedCharSequence text) {
         super(text);
         this.setColor(Colors.DISABLED);
+        this.moveY(GuiConst.DEFAULT_PADDING);
+        this.setHeight(getTextHeight() + this.getPositionY());
     }
 
     @Override
@@ -33,8 +40,13 @@ public class SectionLabel extends Label {
         if(width + 10 < text) return;
 
         int skip = text + 3;
-        stack.translate(skip, 5, 0);
+        stack.translate(skip, this.getPositionY() + 4, 0);
         RenderHelper.fillRect(stack.last().pose(), width - skip, 1, color);
+    }
+
+    @Override
+    public int getHeight() {
+        return this.height;
     }
 
     public SectionLabel setWidth(int width) {

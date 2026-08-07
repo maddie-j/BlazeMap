@@ -3,16 +3,15 @@ package com.eerussianguy.blazemap.lib.gui.core;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.minecraft.client.gui.components.events.GuiEventListener;
+
 /**
  * A ontainer that can grow depending on the size of its contents
  */
 public class DynamicContainer extends BaseContainer<DynamicContainer> {
     // TODO: Fix overriding/typing/etc
     protected final List<RowContainer> rows = new ArrayList<>();
-    
-    public static final int DEFAULT_PADDING = 6;
-    public static final int DEFAULT_MARGIN = 3;
-    
+
     protected int componentMargin;
     protected int padding;
     protected int baseWidth;
@@ -22,7 +21,7 @@ public class DynamicContainer extends BaseContainer<DynamicContainer> {
     protected int componentHeight;
 
     public DynamicContainer() {
-        this(DEFAULT_PADDING, DEFAULT_MARGIN);
+        this(GuiConst.DEFAULT_WIDGET_PADDING, GuiConst.DEFAULT_MARGIN);
     }
 
     public DynamicContainer(int padding, int componentMargin) {
@@ -50,6 +49,12 @@ public class DynamicContainer extends BaseContainer<DynamicContainer> {
     protected void add(RowContainer row) {
         super.add(row);
         rows.add(row);
+    }
+
+    @Override
+    public void remove(BaseComponent<?> child) {
+        super.remove(child);
+        rows.remove(child);
     }
 
     /**
@@ -153,7 +158,6 @@ public class DynamicContainer extends BaseContainer<DynamicContainer> {
         private boolean isCentered = false;
         private boolean isJustified = false;
 
-        private final int positionY = 0; // Row always starts at same height
         private int baseWidth; // What width would be with no child component scaling
         private final int height;
 
@@ -164,7 +168,7 @@ public class DynamicContainer extends BaseContainer<DynamicContainer> {
             int maxHeight = 0;
 
             for (BaseComponent<?> child: children) {
-                super.add(child.setPosition(nextComponentStart, positionY));
+                super.add(child.setPosition(nextComponentStart, child.getPositionY()));
                 nextComponentStart += child.getIndependentWidth() + parent.componentMargin;
 
                 if (child.getIndependentHeight() > maxHeight) {
@@ -187,7 +191,7 @@ public class DynamicContainer extends BaseContainer<DynamicContainer> {
             int nextComponentStart = 0;
 
             for (int i = 0; i < widths.length; i++) {
-                renderables.get(i).setWidth(widths[i]).setPosition(nextComponentStart, positionY);
+                renderables.get(i).setWidth(widths[i]).setPosition(nextComponentStart, renderables.get(i).getPositionY());
                 nextComponentStart += widths[i] + parent.componentMargin;
             }
 
@@ -222,6 +226,17 @@ public class DynamicContainer extends BaseContainer<DynamicContainer> {
             return this;
         }
 
+        /**
+         * Syntactic sugar for setRelativeWidths(1)
+         */
+        public RowContainer fill() {
+            if (this.size() != 1) {
+                throw new IllegalArgumentException("fill() can only be used on rows containing a single element");
+            }
+
+            return this.setRelativeWidths(1);
+        }
+
         
         /**
          * When the parent container's width grows upon adding a new, bigger absolute-width row,
@@ -235,7 +250,7 @@ public class DynamicContainer extends BaseContainer<DynamicContainer> {
 
             for (int i = 0; i < relativeWidths.length; i++) {
                 int newWidth = (int)(widthMinusMargins * relativeWidths[i]);
-                renderables.get(i).setWidth(newWidth).setPosition(nextComponentStart, positionY);
+                renderables.get(i).setWidth(newWidth).setPosition(nextComponentStart, renderables.get(i).getPositionY());
                 
                 nextComponentStart += newWidth + parent.componentMargin;
             }
@@ -263,7 +278,7 @@ public class DynamicContainer extends BaseContainer<DynamicContainer> {
             int nextComponentStart = (parent.getInnerWidth() - originalWidth) / 2;
 
             for (BaseComponent<?> child: renderables) {
-                child.setPosition(nextComponentStart, positionY);
+                child.setPosition(nextComponentStart, child.getPositionY());
                 nextComponentStart += child.getIndependentWidth() + parent.componentMargin;
             }
 
@@ -293,7 +308,7 @@ public class DynamicContainer extends BaseContainer<DynamicContainer> {
             int nextComponentStart = 0;
 
             for (BaseComponent<?> child: renderables) {
-                child.setPosition(nextComponentStart, positionY);
+                child.setPosition(nextComponentStart, child.getPositionY());
                 nextComponentStart += child.getIndependentWidth() + justifyMargin;
             }
 

@@ -18,6 +18,7 @@ import com.eerussianguy.blazemap.lib.*;
 import com.eerussianguy.blazemap.lib.gui.components.*;
 import com.eerussianguy.blazemap.lib.gui.components.selection.DropdownList;
 import com.eerussianguy.blazemap.lib.gui.components.selection.SelectionGrid;
+import com.eerussianguy.blazemap.lib.gui.core.GuiConst;
 import com.eerussianguy.blazemap.lib.gui.core.DynamicContainer;
 import com.eerussianguy.blazemap.lib.gui.core.VolatileContainer;
 import com.eerussianguy.blazemap.lib.gui.fragment.BaseFragment;
@@ -58,29 +59,29 @@ public class WaypointEditorFragment extends BaseFragment {
         if(container.titleConsumer.isPresent()) {
             container.titleConsumer.get().accept(getTitle());
         } else {
-            container.addRow(new Label(getTitle()));
+            container.addRow(new TitleLabel(getTitle()));
         }
 
 
         // BASIC INFORMATION ===========================================================================================
-        container.addRow(new SectionLabel("Basic Information")).setRelativeWidths(1);
+        container.addRow(new SectionLabel("Basic Information")).fill();
 
         ObjHolder<String> name = new ObjHolder<>(waypoint.getName());
-        container.addRow(VanillaComponents.makeTextField(font, 160, 14, name)).setRelativeWidths(1);
+        container.addRow(VanillaComponents.makeTextField(font, 160, name));
 
         var pos = waypoint.getPosition();
         IntHolder posX = new IntHolder(pos.getX()), posY = new IntHolder(pos.getY()), posZ = new IntHolder(pos.getZ());
         container.addRow(
-            VanillaComponents.makeIntField(font, 58, 14, posX), 
-            VanillaComponents.makeIntField(font, 38, 14, posY), 
-            VanillaComponents.makeIntField(font, 58, 14, posZ)
+            VanillaComponents.makeIntField(font, 58, posX), 
+            VanillaComponents.makeIntField(font, 38, posY), 
+            VanillaComponents.makeIntField(font, 58, posZ)
         );
 
         DropdownList<ResourceKey<Level>> dimensions = new DropdownList<>(volatiles, d -> new Label(d.location().toString()));
         var dimensionsModel = dimensions.getModel();
         dimensionsModel.setElements(RegistryHelper.getAllDimensions());
         dimensionsModel.setSelected(waypoint.getDimension());
-        container.addRow(dimensions.setSize(160, 14)).setRelativeWidths(1);
+        container.addRow(dimensions).fill();
 
         DropdownList<WaypointGroup> groups = new DropdownList<>(volatiles, g -> new Label(g.getName()));
         var groupsModel = groups.getModel();
@@ -99,10 +100,10 @@ public class WaypointEditorFragment extends BaseFragment {
                 }
             }
         });
-        container.addRow(groups.setSize(160, 14)).setRelativeWidths(1);
+        container.addRow(groups).fill();
 
         // APPEARANCE ==================================================================================================
-        container.addRow(new SectionLabel("Appearance")).setRelativeWidths(1);
+        container.addRow(new SectionLabel("Appearance")).fill();
         
         IntHolder color = new IntHolder(waypoint.getColor());
         float[] hsb = Colors.RGB2HSB(color.get());
@@ -120,7 +121,7 @@ public class WaypointEditorFragment extends BaseFragment {
         reserved.setEnabled(false);
         reserved.addTooltip(new TextComponent("Reserved for a cool feature later,"), new TextComponent("it does nothing yet."));
 
-        DynamicContainer middleColumn = new DynamicContainer(0, DynamicContainer.DEFAULT_MARGIN);
+        DynamicContainer middleColumn = new DynamicContainer(0, GuiConst.DEFAULT_MARGIN);
         middleColumn.setBaseHeight(display.getHeight());
         middleColumn.addRow(hue);
         middleColumn.addRow(hex);
@@ -147,7 +148,7 @@ public class WaypointEditorFragment extends BaseFragment {
 
 
         // // VISIBILITY ===========================================================================================
-        // container.addRow(new SectionLabel("Visibility")).setRelativeWidths(1);
+        // container.addRow(new SectionLabel("Visibility")).fill();
 
         // new TextButton(Helpers.translate("blazemap.gui.button.save"), button -> {
         //     // TODO

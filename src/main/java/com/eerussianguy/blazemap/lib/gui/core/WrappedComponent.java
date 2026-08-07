@@ -50,6 +50,25 @@ public abstract class WrappedComponent extends BaseComponent<WrappedComponent> {
         throw new UnsupportedOperationException("Wrapped Components cannot be resized");
     }
 
+    /**
+     * TODO: As per LordFokas
+     * 
+     * On resize:
+     * - pull component state
+     * - recreate component with new size
+     * - push old component state onto new component
+     */
+
+    // @Override
+    // public WrappedComponent setWidth(int w) {
+    //     throw new UnsupportedOperationException("Wrapped Components cannot be resized");
+    // }
+
+    // @Override
+    // public WrappedComponent setHeight(int h) {
+    //     throw new UnsupportedOperationException("Wrapped Components cannot be resized");
+    // }
+
     private static class WrappedRenderable extends WrappedComponent {
         private final Renderable renderable;
 
