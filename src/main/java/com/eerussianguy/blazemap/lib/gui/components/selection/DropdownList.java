@@ -16,7 +16,7 @@ public class DropdownList<T> extends BaseComponent<DropdownList<T>> implements F
     protected static final ResourceLocation ARROW_DOWN = BlazeMap.resource("textures/gui/arrow_down.png");
     protected static final ResourceLocation ARROW_UP = BlazeMap.resource("textures/gui/arrow_up.png");
 
-    protected final int ARROW_OFFSET = GuiConst.DEFAULT_PADDING * 2;
+    protected final int ARROW_OFFSET = GuiConst.DEFAULT_PADDING;
 
     protected final EdgeReference arrow;
     protected final VolatileContainer volatiles;
@@ -44,7 +44,7 @@ public class DropdownList<T> extends BaseComponent<DropdownList<T>> implements F
 
         this.arrow = new EdgeReference(this, ContainerAnchor.TOP_RIGHT).setPosition(ARROW_OFFSET, ARROW_OFFSET);
 
-        this.setSize(GuiConst.DEFAULT_FIELD_WIDTH, GuiConst.DEFAULT_FIELD_HEIGHT + GuiConst.BORDER_WIDTH * 2);
+        this.setSize(GuiConst.DEFAULT_FIELD_WIDTH, GuiConst.DEFAULT_BORDERED_FIELD_HEIGHT);
     }
 
     public SelectionModelSingle<T> getModel() {

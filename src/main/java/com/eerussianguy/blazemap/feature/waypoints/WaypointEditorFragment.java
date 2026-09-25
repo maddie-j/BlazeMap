@@ -59,14 +59,14 @@ public class WaypointEditorFragment extends BaseFragment {
         if(container.titleConsumer.isPresent()) {
             container.titleConsumer.get().accept(getTitle());
         } else {
-            container.addRow(new TitleLabel(getTitle()));
+            container.addRow(new TitleLabel(getTitle()).preceedsSectionLabel(true));
         }
 
 
         // BASIC INFORMATION ===========================================================================================
         container.addRow(new SectionLabel("Basic Information")).fill();
 
-        ObjHolder<String> name = new ObjHolder<>(waypoint.getName());
+        ObjHolder<String> name = new ObjHolder<>(waypoint.getName().getString());
         container.addRow(VanillaComponents.makeTextField(font, 160, name));
 
         var pos = waypoint.getPosition();

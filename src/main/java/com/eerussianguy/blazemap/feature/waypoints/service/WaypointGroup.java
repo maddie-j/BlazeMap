@@ -11,7 +11,7 @@ import net.minecraft.resources.ResourceLocation;
 
 import com.eerussianguy.blazemap.api.markers.MarkerStorage;
 
-public class WaypointGroup implements MarkerStorage<Waypoint> {
+public class WaypointGroup implements MarkerStorage<Waypoint>, WaypointConfig {
     private static final HashMap<ResourceLocation, Supplier<WaypointGroup>> GROUP_DEFINITIONS = new HashMap<>();
 
     public static WaypointGroup make(ResourceLocation type) {

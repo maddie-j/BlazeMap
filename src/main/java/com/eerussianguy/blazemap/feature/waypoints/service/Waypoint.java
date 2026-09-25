@@ -8,7 +8,7 @@ import net.minecraft.world.level.Level;
 import com.eerussianguy.blazemap.api.BlazeMapReferences;
 import com.eerussianguy.blazemap.api.markers.Marker;
 
-public final class Waypoint extends Marker<Waypoint> {
+public final class Waypoint extends Marker<Waypoint> implements WaypointConfig {
     private LocalState state;
 
     public Waypoint(ResourceLocation id, ResourceKey<Level> dimension, BlockPos position, String name) {

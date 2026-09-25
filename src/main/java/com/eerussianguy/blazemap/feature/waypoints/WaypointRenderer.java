@@ -9,6 +9,7 @@ import net.minecraft.client.renderer.blockentity.BeaconRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
@@ -134,7 +135,7 @@ public class WaypointRenderer {
     }
 
     private static void renderWaypointLabel(Minecraft mc, PoseStack stack, MultiBufferSource.BufferSource buffers, Waypoint w, Vec3 pos, float alpha) {
-        String name = w.getName();
+        Component name = w.getName();
         RenderType icon = RenderType.text(w.getIcon());
         Camera camera = mc.gameRenderer.getMainCamera();
 

@@ -5,6 +5,8 @@ import java.util.Collections;
 import java.util.Set;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
@@ -18,7 +20,7 @@ public class Marker<T extends Marker<T>> {
     private BlockPos.MutableBlockPos position;
     private ResourceLocation icon;
     private int width = 32, height = 32;
-    private String name = null;
+    private Component name = null;
     private boolean nameVisible = false;
     private int color = -1;
     private float rotation = 0F;
@@ -78,7 +80,7 @@ public class Marker<T extends Marker<T>> {
         return height;
     }
 
-    public String getName() {
+    public Component getName() {
         return name;
     }
 
@@ -139,6 +141,12 @@ public class Marker<T extends Marker<T>> {
 
     @SuppressWarnings("unchecked")
     public T setName(String name) {
+        this.name = new TextComponent(name);
+        return (T) this;
+    }
+
+    @SuppressWarnings("unchecked")
+    public T setName(Component name) {
         this.name = name;
         return (T) this;
     }

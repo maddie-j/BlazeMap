@@ -67,7 +67,7 @@ public abstract class BaseScrollable<T extends BaseScrollable<T>> extends BaseCo
         }
 
         @Override @SuppressWarnings("unchecked")
-        protected LineContainer withParent(BaseComponent<?> parent) {
+        public LineContainer withParent(BaseComponent<?> parent) {
             this.parent = (T) parent;
             return super.withParent(parent);
         }

@@ -7,7 +7,7 @@ public class Positionable<T extends Positionable<T>> {
     private int positionX, positionY = 0;
     protected int width, height;
 
-    protected T withParent(BaseComponent<?> parent) {
+    public T withParent(BaseComponent<?> parent) {
         this.parent = parent;
         this.referenceFrame = ReferenceFrame.PARENT;
         return (T) this;

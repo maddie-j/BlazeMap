@@ -14,6 +14,7 @@ import com.eerussianguy.blazemap.lib.Colors;
 import com.eerussianguy.blazemap.lib.Helpers;
 import com.eerussianguy.blazemap.lib.RenderHelper;
 import com.eerussianguy.blazemap.lib.gui.components.Tree;
+import com.eerussianguy.blazemap.lib.gui.core.BaseComponent;
 import com.eerussianguy.blazemap.lib.gui.core.ContainerAnchor;
 import com.eerussianguy.blazemap.lib.gui.core.EdgeReference;
 import com.eerussianguy.blazemap.lib.gui.core.TooltipService;
@@ -25,15 +26,18 @@ public class WaypointGroupNode extends WaypointTreeNode {
     private final EdgeReference add = new EdgeReference(this, ContainerAnchor.TOP_RIGHT).setSize(8, 8).setPosition(32, 2);
     private boolean open = true;
 
-    public WaypointGroupNode(WaypointGroup group, Runnable delete) {
-        super(group.getName(), group.getState(), delete, "blazemap.gui.button.edit_group");
+    public WaypointGroupNode(BaseComponent<?> parent, WaypointGroup group, Runnable delete) {
+        super(parent, group, delete, "blazemap.gui.button.edit_group");
         this.group = group;
         this.children = new ArrayList<>(group.getAll().stream().map(this::makeChild).toList());
+
+        addButtons(group);
     }
 
     private WaypointLeaf makeChild(Waypoint waypoint) {
         ResourceLocation id = waypoint.getID();
         return new WaypointLeaf(
+            getParent(),
             waypoint,
             group,
             () -> {
@@ -52,7 +56,7 @@ public class WaypointGroupNode extends WaypointTreeNode {
 
         stack.pushPose();
             stack.translate(getHeight(), getHeight() / 2F - 4, 0);
-            font.draw(stack, open ? "v" : ">", -9, 1, Colors.BLACK);
+            this.getFont().draw(stack, open ? "v" : ">", -9, 1, Colors.BLACK);
         stack.popPose();
 
         super.render(stack, hasMouse, mouseX, mouseY);

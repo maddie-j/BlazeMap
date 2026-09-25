@@ -34,7 +34,7 @@ public class Label extends BaseComponent<Label> {
     }
 
     public int getTextHeight() {
-        return GuiConst.DEFAULT_FONT_HEIGHT;
+        return GuiConst.FONT_HEIGHT;
     }
 
     public int getHeight() {
@@ -44,13 +44,17 @@ public class Label extends BaseComponent<Label> {
     @Override
     public void render(PoseStack stack, boolean hasMouse, int mouseX, int mouseY) {
         text.map(
-            fmt -> font.draw(stack, fmt, this.getPositionX(), this.getPositionY(), getColor()),
-            str -> font.draw(stack, str, this.getPositionX(), this.getPositionY(), getColor())
+            fmt -> font.draw(stack, fmt, 0, 0, getColor()),
+            str -> font.draw(stack, str, 0, 0, getColor())
         );
     }
 
     public int getColor() {
         return color;
+    }
+
+    public Font getFont() {
+        return this.font;
     }
 
     public Label setColor(int color) {

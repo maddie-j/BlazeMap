@@ -3,8 +3,6 @@ package com.eerussianguy.blazemap.lib.gui.core;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.minecraft.client.gui.components.events.GuiEventListener;
-
 /**
  * A ontainer that can grow depending on the size of its contents
  */
@@ -126,11 +124,11 @@ public class DynamicContainer extends BaseContainer<DynamicContainer> {
     // ------
     @Override
     public int getWidth() { return getInnerWidth() + (padding * 2); }
-    private int getInnerWidth() { return Math.max(componentWidth, baseWidth - (padding * 2)); }
+    private int getInnerWidth() { return Math.max(componentWidth, baseWidth); }
 
     @Override
     public int getHeight() { return getInnerHeight() + (padding * 2); }
-    private int getInnerHeight() { return Math.max(componentHeight, baseHeight - (padding * 2)); }
+    private int getInnerHeight() { return Math.max(componentHeight, baseHeight); }
 
     public DynamicContainer setBaseWidth(int width) { 
         this.baseWidth = width;

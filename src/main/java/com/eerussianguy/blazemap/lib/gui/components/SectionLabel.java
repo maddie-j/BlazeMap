@@ -40,8 +40,8 @@ public class SectionLabel extends Label {
         if(width + 10 < text) return;
 
         int skip = text + 3;
-        stack.translate(skip, this.getPositionY() + 4, 0);
-        RenderHelper.fillRect(stack.last().pose(), width - skip, 1, color);
+        stack.translate(skip, (GuiConst.FONT_HEIGHT / 2), 0);
+        RenderHelper.fillRect(stack.last().pose(), width - skip, GuiConst.BORDER_WIDTH, color);
     }
 
     @Override

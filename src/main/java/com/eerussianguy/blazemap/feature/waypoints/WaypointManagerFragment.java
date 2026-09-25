@@ -18,6 +18,7 @@ import com.eerussianguy.blazemap.lib.gui.components.IconTabs;
 import com.eerussianguy.blazemap.lib.gui.components.Label;
 import com.eerussianguy.blazemap.lib.gui.components.Tree;
 import com.eerussianguy.blazemap.lib.gui.components.TextButton;
+import com.eerussianguy.blazemap.lib.gui.components.TitleLabel;
 import com.eerussianguy.blazemap.lib.gui.components.selection.DropdownList;
 import com.eerussianguy.blazemap.lib.gui.components.selection.SelectionModelSingle;
 import com.eerussianguy.blazemap.lib.gui.core.VolatileContainer;
@@ -34,29 +35,34 @@ public class WaypointManagerFragment extends BaseFragment {
     @Override
     public void compose(FragmentContainer container, VolatileContainer volatiles) {
         WaypointServiceClient client = WaypointServiceClient.instance();
-        int y = 0;
+        container.setBaseWidth(160);
 
         if(container.titleConsumer.isPresent()) {
             container.titleConsumer.get().accept(getTitle());
         } else {
-            container.add(new Label(getTitle()), 0, y);
-            y = 15;
+            container.addRow(new TitleLabel(getTitle()));
         }
 
         DropdownList<ResourceKey<Level>> dimensions = new DropdownList<>(volatiles, d -> new Label(d.location().toString()));
         var model = dimensions.getModel();
         model.setElements(RegistryHelper.getAllDimensions());
         model.setSelected(Helpers.levelOrThrow().dimension());
-        container.add(dimensions.setSize(MANAGER_UI_WIDTH, 14), 0, y);
+        container.addRow(dimensions).fill();
 
         IconTabs tabs = new IconTabs().setSize(MANAGER_UI_WIDTH, 20).setLine(5, 5);
-        container.add(tabs, 0, y += 17);
+        container.addRow(tabs).fill();
 
+        // TODO: Toggle height based on visibility
         for(var pool : client.getPools()) {
             var pc = new PoolContainer(model, container::dismiss, pool);
-            container.add(pc, 0, y + 25);
+            container.addRow(pc);
             tabs.add(pc);
+
+            // TMP
+            break;
         }
+
+        container.finalise();
     }
 
     private static class PoolContainer extends FragmentContainer implements IconTabs.TabComponent {
@@ -76,13 +82,13 @@ public class WaypointManagerFragment extends BaseFragment {
         private void construct() {
             clear();
 
-            Tree tree = new Tree().setSize(MANAGER_UI_WIDTH, 160);
+            Tree tree = new Tree().setSize(MANAGER_UI_WIDTH, 160).withParent(this);
             add(tree, 0, 0);
             dimensions.addSelectionListener(dimension -> {
                 tree.clearItems();
                 var groups = pool.getGroups(dimension);
                 for(var group : groups) {
-                    tree.addItem(new WaypointGroupNode(group, () -> groups.remove(group)));
+                    tree.addItem(new WaypointGroupNode(tree, group, () -> groups.remove(group)));
                 }
             });
 

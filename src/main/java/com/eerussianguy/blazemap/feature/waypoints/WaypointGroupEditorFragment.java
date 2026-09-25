@@ -3,8 +3,8 @@ package com.eerussianguy.blazemap.feature.waypoints;
 import com.eerussianguy.blazemap.feature.waypoints.service.WaypointGroup;
 import com.eerussianguy.blazemap.lib.Helpers;
 import com.eerussianguy.blazemap.lib.ObjHolder;
-import com.eerussianguy.blazemap.lib.gui.components.Label;
 import com.eerussianguy.blazemap.lib.gui.components.TextButton;
+import com.eerussianguy.blazemap.lib.gui.components.TitleLabel;
 import com.eerussianguy.blazemap.lib.gui.components.VanillaComponents;
 import com.eerussianguy.blazemap.lib.gui.core.VolatileContainer;
 import com.eerussianguy.blazemap.lib.gui.fragment.BaseFragment;
@@ -20,22 +20,23 @@ public class WaypointGroupEditorFragment extends BaseFragment {
 
     @Override
     public void compose(FragmentContainer container, VolatileContainer volatiles) {
-        int y = 0;
+        container.setBaseWidth(160);
 
         if(container.titleConsumer.isPresent()) {
             container.titleConsumer.get().accept(getTitle());
         } else {
-            container.add(new Label(getTitle()), 0, y);
-            y = 15;
+            container.addRow(new TitleLabel(getTitle()));
         }
 
         ObjHolder<String> name = new ObjHolder<>(group.getNameString());
-        container.add(VanillaComponents.makeTextField(font, 160, 14, name), 0, y);
+        container.addRow(VanillaComponents.makeTextField(font, 160, name)).fill();
 
         TextButton submit = new TextButton(Helpers.translate("blazemap.gui.button.save"), button -> {
             group.setUserGivenName(name.get());
             container.dismiss();
         });
-        container.add(submit.setSize(80, 20), 40, y+20);
+        container.addRow(submit.setSize(80, 20)).shouldCenter();
+
+        container.finalise();
     }
 }

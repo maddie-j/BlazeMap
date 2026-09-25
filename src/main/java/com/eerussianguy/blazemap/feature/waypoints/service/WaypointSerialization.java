@@ -43,7 +43,7 @@ public class WaypointSerialization {
                     output.writeCollection(group.getAll(), waypoint -> {
                         output.writeResourceLocation(waypoint.getID());
                         output.writeBlockPos(waypoint.getPosition());
-                        output.writeUTF(waypoint.getName());
+                        output.writeUTF(waypoint.getName().getString());
                         output.writeResourceLocation(waypoint.getIcon());
                         output.writeInt(waypoint.getColor());
                         output.writeFloat(waypoint.getRotation());

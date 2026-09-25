@@ -41,7 +41,7 @@ public class WorldMapMenu {
         );
         waypoints.iterate(waypoint -> {
             if(waypoint.getPosition().atY(0).distSqr(local) < 40) return;
-            folder.add(makeFolder("waypoint.options", waypoint.getIcon(), waypoint.getColor(), waypoint.getName(),
+            folder.add(makeFolder("waypoint.options", waypoint.getIcon(), waypoint.getColor(), waypoint.getName().getString(),
                     makeAction("waypoint.edit", null, () -> new WaypointEditorFragment(waypoint).open()),
                     makeAction("waypoint.hide", null, null),
                     makeAction("waypoint.delete", null, null)

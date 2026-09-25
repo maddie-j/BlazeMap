@@ -4,6 +4,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.network.chat.Component;
 
 import com.eerussianguy.blazemap.api.BlazeMapReferences;
 import com.eerussianguy.blazemap.api.BlazeRegistry;
@@ -30,7 +31,7 @@ public class DefaultObjectRenderer implements ObjectRenderer<Marker<?>> {
         }
 
         // Get common marker properties
-        String name = marker.getName();
+        Component name = marker.getName();
         int width = marker.getWidth();
         int height = marker.getHeight();
         int color = marker.getColor();

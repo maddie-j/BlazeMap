@@ -10,7 +10,7 @@ import com.eerussianguy.blazemap.lib.gui.core.BaseButton;
 import com.mojang.blaze3d.vertex.PoseStack;
 
 public class ImageButton extends BaseButton<ImageButton> {
-    protected final ResourceLocation background;
+    protected ResourceLocation background;
 
     public ImageButton(ResourceLocation background, int width, int height, IntConsumer function) {
         super(function);

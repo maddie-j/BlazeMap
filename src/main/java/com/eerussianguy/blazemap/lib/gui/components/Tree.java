@@ -20,6 +20,7 @@ public class Tree extends BaseScrollable<Tree> {
 
     public <T extends BaseComponent<?> & TreeItem> void addItem(T item) {
         items.add(item);
+        item.withParent(this);
         recalculate();
     }
 

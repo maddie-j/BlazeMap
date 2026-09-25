@@ -4,6 +4,7 @@ import com.eerussianguy.blazemap.feature.waypoints.WaypointEditorFragment;
 import com.eerussianguy.blazemap.feature.waypoints.service.Waypoint;
 import com.eerussianguy.blazemap.feature.waypoints.service.WaypointGroup;
 import com.eerussianguy.blazemap.lib.RenderHelper;
+import com.eerussianguy.blazemap.lib.gui.core.BaseComponent;
 import com.mojang.blaze3d.vertex.PoseStack;
 
 public class WaypointLeaf extends WaypointTreeNode {
@@ -12,10 +13,12 @@ public class WaypointLeaf extends WaypointTreeNode {
     private final Waypoint waypoint;
     private final WaypointGroup group;
 
-    public WaypointLeaf(Waypoint waypoint, WaypointGroup group, Runnable delete) {
-        super(waypoint.getName(), waypoint.getState(), delete, "blazemap.gui.button.edit_waypoint");
+    public WaypointLeaf(BaseComponent<?> parent, Waypoint waypoint, WaypointGroup group, Runnable delete) {
+        super(parent, waypoint, delete, "blazemap.gui.button.edit_waypoint");
         this.waypoint = waypoint;
         this.group = group;
+
+        addButtons(waypoint);
     }
 
     @Override

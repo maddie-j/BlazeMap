@@ -76,7 +76,10 @@ public class SelectionList<T, R> extends BaseScrollable<SelectionList<T, R>> {
         protected final SelectionModel<T, ?> model;
 
         public MaterializedWrapper(T item, BaseComponent<?> component, SelectionModel<T, ?> model) {
-            this.component = component.setPosition(GuiConst.DEFAULT_PADDING / 2, GuiConst.DEFAULT_PADDING / 2);
+            // TODO: Make container a proper container then deal with positioning
+            this.component = component.setPosition(0, 0);
+            // this.component = component.setPosition(GuiConst.DEFAULT_PADDING / 2, GuiConst.DEFAULT_PADDING / 2);
+            // this.component = component.setPosition(GuiConst.DEFAULT_PADDING, GuiConst.DEFAULT_PADDING);
             this.item = item;
             this.model = model;
         }
